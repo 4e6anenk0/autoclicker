@@ -36,7 +36,12 @@ class Macros:
 
     @property
     def script(self):
-        return self.__script
+        if self.__macros_path:
+            return self.__script
+    
+    @property
+    def path(self):
+        return self.__macros_path
     
     @property
     def name(self) -> str:
@@ -102,3 +107,12 @@ class Macros:
             BaseScriptNode: об'єкт вузлу
         """
         return self.__script.get_node_by_uuid(uuid)[0]
+    
+    def get_nodes(self) -> list[BaseScriptNode]:
+        """
+        Отримати всі вузли скрипта з цього макроса
+
+        Returns:
+            list[BaseScriptNode]: список вузлів що зберігає цей макрос
+        """
+        return self.__script.get_nodes()

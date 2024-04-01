@@ -92,6 +92,10 @@ class Settings:
         return self.__log_path
     
     @property
+    def root_path(self) -> Path:
+        return self.__root_path
+    
+    @property
     def macroses_path(self) -> Path:
         return self.__macroses_path
     

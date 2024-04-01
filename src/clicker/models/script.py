@@ -217,6 +217,9 @@ class Script:
             list[BaseScriptNode]: копія списку вузлів
         """
         return copy(self.__nodal_view) 
+    
+    def remove_node(self, node: BaseScriptNode):
+        self.__nodal_view.remove(node)
 
  
 
