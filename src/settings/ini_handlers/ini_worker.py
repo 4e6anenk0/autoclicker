@@ -5,6 +5,7 @@ from typing import Dict
 from src.settings.ini_handlers.section import Section
 
 from src.utils.logger.logger import AppLogger
+from src.utils.file_helper.file_helper import create_destination_path
 
 logger = AppLogger.get_logger(__name__)
 
@@ -36,7 +37,7 @@ class IniWorker:
         logger.info('Generate Default ini...')
         if not self._isINIFile(self.__path_to_file):
             #Path.touch(self.__path_to_file)
-            self._create_destination_path(self.__path_to_file)
+            create_destination_path(self.__path_to_file)
         """ else:
             Path.unlink(self.__path_to_file)
             self._create_destination_path(self.__path_to_file) """

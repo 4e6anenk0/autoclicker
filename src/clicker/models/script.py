@@ -147,7 +147,7 @@ class Script:
                 return (node, index)
             index += 1
             
-    def lift_down_node_order(self, node_uuid: str):
+    def lift_down_node_order(self, node_uuid: str) -> Tuple[NodePosition, NodePosition]:
         """
         Змістити вузол зі вказаним `uuid` збільшивши значення на одну позицію відносно поточного індексу в списку.
         Тобто, це розмістить вузол нижче у порядку виклику. Якщо `node_uuid` відповідає останьому вузлу в списку,
@@ -155,24 +155,34 @@ class Script:
 
         Args:
             node_uuid (str): ідентифікатор вузла у строковому представленні
+
+        Returns:
+            Tuple[NodePosition, NodePosition]: (old_position, new_position) кортеж попереднього ідекса розміщення та поточного 
         """
         (node, index) = self.get_node_by_uuid(node_uuid)
-        if len(self.__nodal_view) == index + 1:
-            return
-        self.__nodal_view.remove(node)
-        self.insert_node(node, index, order='after')
+        if len(self.__nodal_view) == index + 1:  # якщо досягли кінцевого індексу, то нижче підняти вузол забороняємо
+            return (index, index)
+        self.insert_node(node, index + 2, order='before') 
+        self.__nodal_view.pop(index) 
+        return (index, index + 1)
 
-    def lift_up_node_order(self, node_uuid: str):
+    def lift_up_node_order(self, node_uuid: str) -> Tuple[NodePosition, NodePosition]:
         """
         Змістити вузол зі вказаним `uuid` зменшивши значення на одну позицію відносно поточного індексу в списку.
         Тобто, це розмістить вузол вище у порядку виклику.
 
         Args:
             node_uuid (str): ідентифікатор вузла у строковому представленні
+
+        Returns:
+            Tuple[NodePosition, NodePosition]: (old_position, new_position) кортеж попереднього ідекса розміщення та поточного
         """
         (node, index) = self.get_node_by_uuid(node_uuid)
-        self.__nodal_view.remove(node)
-        self.insert_node(node, index, order='before')
+        if index <= 0: # якщо досягли початкового індексу, то вище підняти вузол забороняємо
+            return (index, index)
+        self.insert_node(node, index - 1, order='before')
+        self.__nodal_view.pop(index + 1)   
+        return (index, index - 1)
 
     def change_node_order(self, node_uuid: str, new_index: Union[NodePosition, int]):
         """
@@ -220,6 +230,11 @@ class Script:
     
     def remove_node(self, node: BaseScriptNode):
         self.__nodal_view.remove(node)
+
+    def remove_node_by_uuid(self, node_id: str):
+        for node in self.__nodal_view:
+            if node.uuid == node_id:
+                self.__nodal_view.remove(node)
 
  
 

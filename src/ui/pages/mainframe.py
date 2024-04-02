@@ -50,6 +50,9 @@ class MainFrame(Page):
         self.action.mainloop()
 
     def show_macros_editor(self):
+        if 'MacrosEditor' in self.__pages:
+            self.__pages.pop('MacrosEditor')
+            self.add_page(MacrosEditor(self, settings=self.settings))
         self.show_page('MacrosEditor')
         
     
@@ -70,6 +73,10 @@ class MainFrame(Page):
     def hide_page(self, page_name: str):
         if self.__current_page == page_name:
             self.__pages[page_name].grid_remove()
+
+    def remove_page(self, page_name: str):
+        if self.__current_page == page_name:
+            self.__pages[page_name].destroy()
 
     def add_page(self, page: Union[Page, ScrollablePage]) -> Union[Page, ScrollablePage]:
         self.__pages[page.__class__.__name__] = page

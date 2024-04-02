@@ -38,7 +38,13 @@ class Texts(Enum):
     settings_page_label = "Settings Page"
     home_page_label = "Home Page"
     settings_page_lang_field = "Select the language for the app:"
-
+    macros_editor_save_macros_button = "Save macros"
+    macros_editor_title_placeholder = "Macros name"
+    macros_editor_no_info_label = "No any nodes..."
+    macros_editor_type_node_menu_placeholder = "Node type:"
+    macros_editor_add_node_button = "Add node"
+    macros_editor_name_entry_placeholder = "Node name..."
+    macros_editor_desc_entry_label = "Description:"
 
 class Settings:
     def __init__(self, debug_mode: bool = False):
@@ -83,7 +89,14 @@ class Settings:
                                                                 Texts.home_btn.name : Texts.home_btn.value,
                                                                 Texts.settings_page_label.name : Texts.settings_page_label.value,
                                                                 Texts.home_page_label.name : Texts.home_page_label.value,
-                                                                Texts.settings_page_lang_field.name : Texts.settings_page_lang_field.value}),
+                                                                Texts.settings_page_lang_field.name : Texts.settings_page_lang_field.value,
+                                                                Texts.macros_editor_add_node_button.name : Texts.macros_editor_add_node_button.value,
+                                                                Texts.macros_editor_desc_entry_label.name : Texts.macros_editor_desc_entry_label.value,
+                                                                Texts.macros_editor_name_entry_placeholder.name : Texts.macros_editor_name_entry_placeholder.value,
+                                                                Texts.macros_editor_no_info_label.name : Texts.macros_editor_no_info_label.value,
+                                                                Texts.macros_editor_save_macros_button.name : Texts.macros_editor_save_macros_button.value,
+                                                                Texts.macros_editor_title_placeholder.name : Texts.macros_editor_title_placeholder.value,
+                                                                Texts.macros_editor_type_node_menu_placeholder.name : Texts.macros_editor_type_node_menu_placeholder.value}),
 
         }
 

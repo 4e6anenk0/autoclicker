@@ -58,6 +58,15 @@ class Macros:
     def add_script(self, script: Script):
         self.__script = script
 
+    def add_node(self, node: BaseScriptNode):
+        self.__script.add_node(node)
+
+    def set_name(self, new_name: str) -> bool:
+        if len(new_name) <= 40:
+            self.__name = new_name
+            return True
+        return False
+
     def save(self):
         """
         Метод для збереження макросу в директорію локального збереження макросів.
@@ -65,7 +74,7 @@ class Macros:
         Цей метод сворює необхідні шляхи, директорії, файли для збереження даних макросу.
         Також він зберігає метадані у полі `self.__metadata` які потім груперуються в файлі `metadata.json`
         """
-        dirname = f"{date.today()}_{self.__name}"
+        dirname = f"{date.today()} {self.__name}"
         macros_path = self.__workdir.joinpath(dirname)
         self.__macros_path = macros_path
         create_destination_dir(macros_path.joinpath('data/'))

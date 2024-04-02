@@ -8,7 +8,7 @@ from src.clicker.models.nodes.base_node import BaseScriptNode
 
 
 class TemplateClickNode(BaseScriptNode):
-    def __init__(self, data: str, button: Action = 'left', move: bool = False, count: int = 1, **kw):
+    def __init__(self, data: str = 'Empty Data', button: Action = 'left', move: bool = False, count: int = 1, **kw):
         super().__init__(action='click', **kw)
         self.button = button
         self.move = move

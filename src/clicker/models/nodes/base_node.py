@@ -1,3 +1,4 @@
+from typing import Dict, Union
 import uuid
 
 from src.clicker.core.action_factory import Action, ActionFactory
@@ -23,12 +24,11 @@ class BaseScriptNode:
         return hash(self.uuid)
     
     def __str__(self) -> str:
-       return f"Node name: [{self.name}], action: [{self.action}]. \n"
+       return f"Node name: [{self.name}], action: [{self.action}], id: [{self.uuid}]. \n"
 
-    def get_data(self):
+    def get_data(self) -> Union[str, None]:
         value = getattr(self, 'data', None)
-        if value:
-            return value
+        return value
         
     def apply(self, action_factory: ActionFactory):
         pass
