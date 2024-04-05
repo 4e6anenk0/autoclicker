@@ -15,7 +15,7 @@ class App(ct.CTk, AsyncCTk):
         self.geometry(f"{1100}x{580}")
         self.title("Autoclicker")
 
-        self.minsize(700, 300)
+        self.minsize(850, 300)
 
         self.mainframe = MainFrame(self, settings=settings)
         self.mainframe.pack_configure(fill="both", expand=True)

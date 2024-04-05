@@ -3,3 +3,4 @@ pynput
 numpy
 customtkinter
 async-tkinter-loop
+tkinter-tooltip

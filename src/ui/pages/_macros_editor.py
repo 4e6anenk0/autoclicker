@@ -1,15 +1,47 @@
-from copy import copy
 from typing import Any, Callable, Dict, Tuple
-import customtkinter
-from customtkinter import CTkFrame, CTkLabel, CTkScrollableFrame, CTkOptionMenu, CTkFont, CTkImage, CTkEntry, CTkTextbox, CTkButton, CTkToplevel
+from customtkinter import *
 from PIL.Image import Image
 from PIL import Image as ImageFactory
+from tktooltip import ToolTip
+
+from src.clicker.models.nodes.click_node import ClickNode
 from src.clicker.models.nodes.base_node import BaseScriptNode
 from src.clicker.models.script import Script
 from src.clicker.models.macros import Macros
 from src.clicker.models.nodes.node_factory import NodeFactory, NodeName
 from src.settings.settings import Settings, Texts, get_settings
-from src.ui.pages.page import ScrollablePage, Page
+from src.ui.pages.page import Page
+from src.ui.widgets.alert import Alert
+from src.utils.file_helper.file_helper import load_img
+
+
+class MetadataInfo(CTkToplevel):
+    def __init__(self, macros: Macros, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.macros = macros
+
+        self.create_content().pack_configure(fill='both', expand=True)
+
+    def create_content(self):
+        self.frame = CTkFrame(self)
+
+        self.scrollable_content = CTkScrollableFrame(self.frame)
+        self.scrollable_content.pack_configure(fill='both', expand=True)
+
+        header_frame = CTkFrame(self.scrollable_content)
+
+        macros_name_title = CTkLabel(header_frame, text = f'Macros: {self.macros.name}')
+        macros_id = CTkLabel(header_frame, text = f'Macros UUID: {self.macros.uuid}')
+        metadata_view = CTkTextbox()
+        metadata_view.insert('0.0', text=f"{str(self.macros.metadata.to_dict())}")
+
+        macros_name_title.pack_configure(fill='x', expand=False)
+        macros_id.pack_configure(fill='x', expand=False)
+        metadata_view.pack_configure(fill='x', expand=False)
+
+        header_frame.pack_configure(fill='both', expand=True)
+
+        return self.frame
 
 
 class MacrosEditor(Page):
@@ -43,25 +75,39 @@ class MacrosEditor(Page):
         self.title = CTkEntry(title_frame, font=CTkFont(size=20, weight='bold'), placeholder_text=get_settings().get_ui_text(Texts.macros_editor_title_placeholder), width=400)
         self.title.grid_configure(row=0, column=0, sticky='w')
 
+        metadata_info = CTkButton(title_frame, width=100, height=42, text='info', command=self.open_metadata_info)
+        metadata_info.grid_configure(row=0, column=1, sticky='w', padx=10)
+
         save_macros_button = CTkButton(title_frame, text=get_settings().get_ui_text(Texts.macros_editor_save_macros_button), height=42, fg_color='green')
-        save_macros_button.grid_configure(row=0, column=1, sticky='e')
+        save_macros_button.grid_configure(row=0, column=2, sticky='e')
 
         title_frame.pack_configure(padx=10, pady=10, fill='x', expand=True)
 
         header_panel = HeaderPanel(self.header, editor=self)
         header_panel.pack_configure(anchor='w')
         
-        if self.macros:
+        if self.macros: # Заповнення scrollable_content або існуючими вузлами в макросі, або повідомленням їх відсутності
             for node in self.macros.get_nodes():
                 node_view = NodeView(self.scrollable_content, self, path_to_img=node.get_data)
+
                 self.editing_node_views.append(node_view)
-                node_view.pack_configure(padx=(0, 10), pady=10)
-            
+                node_view.pack_configure(padx=(0, 10), pady=10) 
         else:
             self.no_info = CTkLabel(self.scrollable_content, text=get_settings().get_ui_text(Texts.macros_editor_no_info_label), anchor='n')
             self.no_info.pack_configure(pady=30)
 
         return self.frame
+    
+    def create_macros(self):
+        self.macros = Macros()
+    
+    def open_metadata_info(self):
+        self.metadata_info = MetadataInfo(macros=self.macros)
+        self.metadata_info.focus()
+
+    def fill_data_from_macros_if_exist(self):
+        if self.macros:
+            self.title.insert(index='0.0', string=self.macros.name)
     
     def save(self):
         print('Save called...')
@@ -83,12 +129,19 @@ class MacrosEditor(Page):
         self.macros = None
         self.no_info.pack_configure(pady=30)
 
+    def create_node_view(self, node: BaseScriptNode):
+        return NodeView(self.scrollable_content, self, node=node)
+            
+
     def update_node_views(self):
         print(self.editing_node_views)
         for node in self.script.get_nodes():
             if node.uuid not in self.editing_nodes:
                 self.editing_nodes[node.uuid] = node
-                node_view = NodeView(self.scrollable_content, self, node_id = node.uuid, path_to_img=node.get_data())
+
+                #node_view = NodeView(self.scrollable_content, self, node_id = node.uuid, path_to_img=node.get_data())
+                node_view = self.create_node_view(node)
+                
                 self.editing_node_views.append(node_view)
                 node_view.pack_configure(padx=(0, 10), pady=10)
         
@@ -132,7 +185,9 @@ class HeaderPanel(CTkFrame):
             if self.editor.no_info:
                 self.editor.no_info.pack_forget()
             self.clear_all_button.grid_configure(row=0, column=2, padx=(0, 10), pady=10)
+            
             new_node = NodeFactory.create_node(type_node)
+
             if self.editor.macros:
                 self.editor.macros.add_node(new_node)
                 self.pack_node(self.editor)
@@ -145,64 +200,117 @@ class HeaderPanel(CTkFrame):
         editor.update_node_views()
 
 
+
+    
+class NodeViewManipulator(CTkFrame):
+    def __init__(self, master: Any, up_callback: Callable, down_callback: Callable, remove_callback: Callable, **kwargs):
+        super().__init__(master, **kwargs)
+        self.master
+        self.up_callback = up_callback
+        self.down_callback = down_callback
+        self.remove_callback = remove_callback
+
+        self.create_content().pack_configure(fill='both', expand=True)
+    
+    def create_content(self) -> CTkFrame:
+        self.frame = CTkFrame(self, fg_color='transparent', bg_color='transparent',)
+
+        trash_img = load_img(get_settings().root_path.joinpath('src/icons/delete-trash.png'), resize=(40, 40))
+        ctk_trash_img = CTkImage(trash_img)
+
+        lift_up_node_button = CTkButton(self.frame, height=30, width=50, text='<', fg_color='transparent', command=self.up_callback)
+        lift_down_node_button = CTkButton(self.frame, height=30, width=50, text='>', fg_color='transparent', command=self.down_callback)
+        remove_button = CTkButton(self.frame, width=50, height=50, fg_color='red', image=ctk_trash_img, text='', command=self.remove_callback)    
+        
+        lift_up_node_button.pack_configure()
+        remove_button.pack_configure(expand=True)
+        lift_down_node_button.pack_configure()
+
+        self.frame.grid_configure(row=0, column=2, sticky='nes', padx=(30, 0))
+
+        return self.frame
+
+
 class NodeView(CTkFrame):
-    def __init__(self, master: Any, editor: MacrosEditor, node_id: str, path_to_img: str = None, height: int = 200, color: str = '#2b2b2b', **kwargs):
+    def __init__(self, master: Any, editor: MacrosEditor, node: BaseScriptNode, path_to_img: str = None, height: int = 200, color: str = '#2b2b2b', **kwargs):
         super().__init__(master, **kwargs)
         self.height = height
         self.color = color
         self.path_to_img = path_to_img
         self.editor = editor
-        self.node_id = node_id
+        self.node = node
+        self.node_id = node.uuid
         self.alert: CTkToplevel = None
         self.create_content().pack_configure(fill='both', expand=True)
-        
+
+    
+    def fill_from_node(self, node: BaseScriptNode):
+        node_name: NodeName = node.name
+        match node_name:
+            case 'ClickNode':
+                return ClickNodeInfoView(self.frame, node)
+            case 'TemplateClickNode':
+                return TemplateClickNodeInfoView(self.frame, node)
 
     def create_content(self) -> CTkFrame:
         self.frame = CTkFrame(self, height=self.height, fg_color='transparent', bg_color='transparent', corner_radius=50)
 
         self.frame.grid_columnconfigure([1], weight=1)
-        
+
         if self.path_to_img:
             img = self.load_img(self.path_to_img, (150, 150))
             img_view = CTkImage(img, size = img.size)
-        
+
             image_label = CTkLabel(self.frame, image=img_view, text="", height=self.height, width=self.height)
+            
             image_label.grid_configure(row=0, column=0, padx=5, pady=5, sticky='nws')
         else:
             fill_label = CTkLabel(self.frame, text="Empty data", height=self.height, width=self.height)
+            
             fill_label.grid_configure(row=0, column=0, padx=5, pady=5, sticky='nws')
         
         # INFO FRAME
-        info_frame = CTkFrame(self.frame, height=self.height, fg_color='transparent')
+        """ info_frame = CTkFrame(self.frame, height=self.height, fg_color='transparent') """
         
-        name_entry = CTkEntry(info_frame, width=200,  placeholder_text=get_settings().get_ui_text(Texts.macros_editor_name_entry_placeholder))
+        data = self.fill_from_node(self.node)
+
+        
+
+        """ name_entry = CTkEntry(info_frame, width=200,  placeholder_text=get_settings().get_ui_text(Texts.macros_editor_name_entry_placeholder))
         name_entry.pack_configure(anchor='w', fill='x', expand=False)
 
         desc_entry_label = CTkLabel(info_frame, text=get_settings().get_ui_text(Texts.macros_editor_desc_entry_label))
         desc_entry = CTkTextbox(info_frame,  height=80, width=400, border_width=2, border_color='black')
         
         desc_entry_label.pack_configure(anchor='nw', expand=False, pady=(20, 0))
-        desc_entry.pack_configure(anchor='w', fill='x', expand=False)
+        desc_entry.pack_configure(anchor='w', fill='x', expand=False) """
 
-        info_frame.grid_configure(row=0, column=1, sticky='nwse', pady=20)
+        #info_frame.grid_configure(row=0, column=1, sticky='nwse', pady=20)
+        data.grid_configure(row=0, column=1, sticky='nwse', pady=20)
+        
         # END INFO FRAME
 
         # MANIPULATOR FRAME
-        manipulator_frame = CTkFrame(self.frame, height=140)
-
-        trash_img = self.load_img(get_settings().root_path.joinpath('src/icons/delete-trash.png'), resize=(40, 40))
+        #manipulator_frame = CTkFrame(self.frame, height=140)
+        manipulator_frame = NodeViewManipulator(self.frame, up_callback=self.lift_up_callback, down_callback=self.lift_down_callback, remove_callback=self.show_remove_alert)
+        manipulator_frame.grid_configure(row=0, column=2, sticky='nes', padx=(30, 0))
+        """ trash_img = self.load_img(get_settings().root_path.joinpath('src/icons/delete-trash.png'), resize=(40, 40))
         ctk_trash_img = CTkImage(trash_img)
 
         lift_up_node_button = CTkButton(manipulator_frame, height=30, width=50, text='<', fg_color='transparent', command=self.lift_up_callback)
         lift_down_node_button = CTkButton(manipulator_frame, height=30, width=50, text='>', fg_color='transparent', command=self.lift_down_callback)
         remove_button = CTkButton(manipulator_frame, width=50, height=50, fg_color='red', image=ctk_trash_img, text='', command=self.show_remove_alert)
         
+
+        #self.tooltip = ToolTip(info_tooltip, msg=f'{self.node_id}', follow=True)
+        
+        
         lift_up_node_button.pack_configure()
         remove_button.pack_configure(expand=True)
         lift_down_node_button.pack_configure()
 
         manipulator_frame.grid_configure(row=0, column=2, sticky='nes', padx=(30, 0))
-        # END MANIPULATOR FRAME
+        # END MANIPULATOR FRAME """
 
         return self.frame
 
@@ -266,43 +374,115 @@ class NodeView(CTkFrame):
         resized_img = img.resize((new_width, new_height))
 
         return resized_img
-    
 
-class Alert(CTkToplevel):
-    def __init__(self, msg: str, confirm_btn_text: str, discard_btn_text: str, callback_confirm: Callable, callback_discard: Callable, screen_size: Tuple[int, int] = (400, 300), *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.geometry(f"{screen_size[0]}x{screen_size[1]}")
-        self.msg = msg
-        self.confirm_btn_text = confirm_btn_text
-        self.discard_btn_text = discard_btn_text
 
-        self.resizable(False, False)
-
-        self.create_content(callback_confirm, callback_discard).pack_configure(fill='both', expand=True)
-    
-    def create_content(self, callback_confirm, callback_discard):
+class ImagePointView(CTkFrame):
+    def __init__(self, master: Any, **kwargs):
+        super().__init__(master, **kwargs)
+        
+    def create_content(self) -> CTkFrame:
         self.frame = CTkFrame(self)
 
-        self.frame.columnconfigure([0,1], weight=1)
-        
-        label_frame = CTkFrame(self.frame, fg_color='transparent')
+        return self.frame
 
-        label = CTkLabel(label_frame, text=self.msg)
-        label.pack_configure(fill='x', expand=True)
+class ClickNodeInfoView(CTkFrame):
+    def __init__(self, master: Any, node: ClickNode = None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.node = node
 
-        buttons_frame = CTkFrame(self.frame, fg_color='transparent')
+        self.create_content().pack_configure(fill='both', expand=True)
 
-        buttons_frame.columnconfigure([0,1], weight=1)
+    def create_content(self):
+        self.frame = CTkFrame(self, fg_color='transparent', bg_color='transparent')
 
-        confirm_button = CTkButton(buttons_frame, width=120, height=30, fg_color='green', command= lambda: callback_confirm(), text=self.confirm_btn_text)
-        discard_button = CTkButton(buttons_frame, width=120, height=30, fg_color='red', command= lambda: callback_discard(), text=self.discard_btn_text)
+        row_1 = CTkFrame(self.frame)
+        info = CTkLabel(row_1, text=f'Node: {self.node.name}', anchor='w')
+        info.pack_configure(fill='both', expand=True)
+        row_1.pack_configure(fill='x', expand=False, padx=5, pady=(10, 5))
 
-        confirm_button.grid_configure(row=0, column=0, padx=(10, 5), pady=20)
-        discard_button.grid_configure(row=0, column=1, padx=(5, 10), pady=20)
+        row_2 = CTkFrame(self.frame)
+        row_2.grid_columnconfigure([1,3], weight=1)
+        x_label = CTkLabel(row_2, text='X:', anchor='w')
+        x_label.grid_configure(row=0, column=0, sticky='w', padx=(0, 10))
+        self.x_input = CTkEntry(row_2)
+        self.x_input.grid_configure(row=0, column=1, sticky='we', padx=(0, 10))
+        y_label = CTkLabel(row_2, text='Y:', anchor='w')
+        y_label.grid_configure(row=0, column=2, sticky='w', padx=(0, 10))
+        self.y_input = CTkEntry(row_2)
+        self.y_input.grid_configure(row=0, column=3, sticky='we', padx=(0, 10))
+        row_2.pack_configure(fill='x', expand=False, padx=5, pady=5)
 
-        label_frame.pack_configure(fill='both', expand=True)
-        buttons_frame.pack_configure(fill='x', expand=True)
+        row_3 = CTkFrame(self.frame)
+        button_type_label = CTkLabel(row_3, text='Клавіша миші:')
+        button_type_label.grid_configure(row=0, column=0, sticky='w', padx=(0, 10))
+        self.button_type = CTkComboBox(row_3, values=['left', 'right'])
+        self.button_type.grid_configure(row=0, column=1, sticky='w')
+        count_of_click_label = CTkLabel(row_3, text='Кліків:')
+        count_of_click_label.grid_configure(row=0, column=2, sticky='w', padx=(10, 10))
+        self.count_of_click = CTkEntry(row_3, width=50)
+        self.count_of_click.grid_configure(row=0, column=3, sticky='w', padx=(0, 10))
+        row_3.pack_configure(fill='x', expand=False, padx=5, pady=5)
+
+        row_4 = CTkFrame(self.frame)
+        use_move_label = CTkLabel(row_4, text='Показувати переміщення:')
+        use_move_label.grid_configure(row=0, column=0, sticky='w')
+        self.use_move = CTkCheckBox(row_4, text='')
+        self.use_move.grid_configure(row=0, column=1, padx=(10, 0))
+        row_4.pack_configure(fill='x', expand=True, padx=5, pady=(5, 10))
+
+        if self.node:
+            self.fill_from_node(self.node)
 
         return self.frame
     
+    def fill_from_node(self, node: ClickNode):
+        self.x_input.insert(0, str(node.x))
+        self.y_input.insert(0, str(node.y))
+        self.button_type.set(node.button)
+        self.count_of_click.insert(0, str(node.count))
+        self.use_move.toggle(int(node.move))
 
+
+class TemplateClickNodeInfoView(CTkFrame):
+    def __init__(self, master: Any, node: ClickNode = None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.node = node
+
+        self.create_content().pack_configure(fill='both', expand=True)
+
+    def create_content(self):
+        self.frame = CTkFrame(self, fg_color='transparent', bg_color='transparent')
+
+        row_1 = CTkFrame(self.frame)
+        info = CTkLabel(row_1, text=f'Node: {self.node.name}', anchor='w')
+        info.pack_configure(fill='both', expand=True)
+        row_1.pack_configure(fill='x', expand=False, padx=5, pady=(10, 5))
+
+
+        row_2 = CTkFrame(self.frame)
+        button_type_label = CTkLabel(row_2, text='Клавіша миші:')
+        button_type_label.grid_configure(row=0, column=0, sticky='w', padx=(0, 10))
+        self.button_type = CTkComboBox(row_2, values=['left', 'right'])
+        self.button_type.grid_configure(row=0, column=1, sticky='w')
+        count_of_click_label = CTkLabel(row_2, text='Кліків:')
+        count_of_click_label.grid_configure(row=0, column=2, sticky='w', padx=(10, 10))
+        self.count_of_click = CTkEntry(row_2, width=50)
+        self.count_of_click.grid_configure(row=0, column=3, sticky='w', padx=(0, 10))
+        row_2.pack_configure(fill='x', expand=False, padx=5, pady=5)
+
+        row_3 = CTkFrame(self.frame)
+        use_move_label = CTkLabel(row_3, text='Показувати переміщення:')
+        use_move_label.grid_configure(row=0, column=0, sticky='w')
+        self.use_move = CTkCheckBox(row_3, text='')
+        self.use_move.grid_configure(row=0, column=1, padx=(10, 0))
+        row_3.pack_configure(fill='x', expand=False, padx=5, pady=(5, 10))
+
+        if self.node:
+            self.fill_from_node(self.node)
+
+        return self.frame
+    
+    def fill_from_node(self, node: ClickNode):
+        self.button_type.set(node.button)
+        self.count_of_click.insert(0, str(node.count))
+        self.use_move.toggle(int(node.move))

@@ -1,5 +1,6 @@
 from pathlib import Path
-
+from typing import Tuple
+from PIL import Image
 
 def create_destination_dir(destination_path: str) -> bool:
     """
@@ -37,3 +38,28 @@ def create_destination_path(destination_path: str) -> bool:
         return True
     else:
         return False
+    
+def load_img(path: str, resize: Tuple[int, int] = None):
+        img = Image.open(path)
+        if resize:
+            return resize_img(img, resize)
+        return img
+
+def resize_img(img: Image, size: Tuple[int, int]):
+        (current_width, current_height) = img.size
+        (max_width, max_height) = size
+
+        if current_width > max_width or current_height > max_height:
+            if current_width / max_width > current_height / max_height:
+                new_width = max_width
+                new_height = int(current_height * (new_width / current_width))
+            else:
+                new_height = max_height
+                new_width = int(current_width * (new_height / current_height))
+        else:
+            new_width = current_width
+            new_height = current_height
+            
+        resized_img = img.resize((new_width, new_height))
+
+        return resized_img

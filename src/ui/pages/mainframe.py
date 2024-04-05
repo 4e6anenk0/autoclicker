@@ -8,7 +8,8 @@ from customtkinter import CTkFrame
 
 from src.ui.widgets.screenshot_action import ScreenshotAction
 from src.ui.widgets.sidebar_button import SidebarButton
-from src.ui.pages.macros_editor import MacrosEditor
+from src.ui.pages.macros_editor.macros_editor import MacrosEditor
+#from src.ui.pages._macros_editor import MacrosEditor
 
 class AppProtocol(Protocol):
     def update():
@@ -32,10 +33,19 @@ class MainFrame(Page):
 
         self.init_pages()
 
+    def page_builder(self, page_name: str):
+        match page_name:
+            case 'SettingsPage':
+                return SettingsPage(self, settings=self.settings)
+            case 'HomePage':
+                return HomePage(self, settings=self.settings)
+            case 'MacrosEditor':
+                return MacrosEditor(self, settings=self.settings)
+
     def init_pages(self):
         self.add_page(SettingsPage(self, settings=self.settings))
         self.add_page(HomePage(self, settings=self.settings))
-        self.add_page(MacrosEditor(self, settings=self.settings))
+        #self.add_page(MacrosEditor(self, settings=self.settings))
         
         self.set_default_page('SettingsPage')
         self.show_default_page()
@@ -50,9 +60,7 @@ class MainFrame(Page):
         self.action.mainloop()
 
     def show_macros_editor(self):
-        if 'MacrosEditor' in self.__pages:
-            self.__pages.pop('MacrosEditor')
-            self.add_page(MacrosEditor(self, settings=self.settings))
+        
         self.show_page('MacrosEditor')
         
     
@@ -62,6 +70,10 @@ class MainFrame(Page):
         self.__current_page = self.__default_page
     
     def show_page(self, page_name: str):
+        if page_name not in self.__pages.keys():
+            self.__pages[page_name] = self.page_builder(page_name)
+            """ self.__pages[page_name].grid_configure(row=0, column=1, sticky='wsne')
+            self.__current_page = page_name """
         if self.__current_page == None:
             self.__pages[page_name].grid_configure(row=0, column=1, sticky='wsne')
             self.__current_page = page_name
@@ -69,6 +81,9 @@ class MainFrame(Page):
             self.__pages[self.__current_page].grid_remove()
             self.__pages[page_name].grid_configure(row=0, column=1, sticky='wsne')
             self.__current_page = page_name
+        else:
+            return
+        
 
     def hide_page(self, page_name: str):
         if self.__current_page == page_name:

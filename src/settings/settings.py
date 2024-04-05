@@ -131,7 +131,6 @@ class Settings:
         self.__config_settings_worker.update()
 
     def get_ui_text(self, ui_text: Texts):
-        print(self.__localization)
         return self.__config_locale_worker.get_option(self.__localization, ui_text.name)
     
     def update_locale(self, locale: str):
