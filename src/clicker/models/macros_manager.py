@@ -29,6 +29,10 @@ class MacrosManager:
         self.__metadata: Dict[str, MacrosMetadata] = {} # завантажені глобальні метадані
         self.__macroses: Dict[str, Macros] = {} # завантажені макроси
 
+    @property
+    def workdir(self):
+        return self.__workdir
+
     ### Робота з макросами індивідуально: ------------------------------------------------------------
 
     def add_macros(self, macros: Macros):
@@ -140,7 +144,7 @@ class MacrosManager:
             logger.exception(f'{e}')
             return False
 
-    def save_metadata(self, macros_uuid: str) -> bool:
+    def save_local_metadata(self, macros_uuid: str) -> bool:
         """
         Зберегти локальні метадані для макросу
 
@@ -176,6 +180,15 @@ class MacrosManager:
         except Exception as e:
             logger.exception(f'{e}')
             return False
+        
+    def load_macroses(self, batch_size: int):
+        metadatas: list[MacrosMetadata] = self.__metadata.values()
+        data = []
+        for i in range(0, len(metadatas), batch_size):
+            for metadata in metadatas[i:i + batch_size]:
+                data.append(self.load_macros_by_metadata_file(metadata.metadata_path))
+            yield data
+            data = []
     
     def get_macroses_by_filter():
         pass

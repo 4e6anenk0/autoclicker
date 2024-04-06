@@ -32,9 +32,12 @@ class Langs(Enum):
 
 class Texts(Enum):
     test_button = "Test"
+    
     new_macros_btn = "Add macros"
     settings_btn = "Settings"
     home_btn = "Home"
+    macroses_viewer_btn = "My macroses"
+    
     settings_page_label = "Settings Page"
     home_page_label = "Home Page"
     settings_page_lang_field = "Select the language for the app:"
@@ -87,6 +90,7 @@ class Settings:
                                                                 Texts.new_macros_btn.name : Texts.new_macros_btn.value,
                                                                 Texts.settings_btn.name : Texts.settings_btn.value,
                                                                 Texts.home_btn.name : Texts.home_btn.value,
+                                                                Texts.macroses_viewer_btn.name : Texts.macroses_viewer_btn.value,
                                                                 Texts.settings_page_label.name : Texts.settings_page_label.value,
                                                                 Texts.home_page_label.name : Texts.home_page_label.value,
                                                                 Texts.settings_page_lang_field.name : Texts.settings_page_lang_field.value,
@@ -96,7 +100,8 @@ class Settings:
                                                                 Texts.macros_editor_no_info_label.name : Texts.macros_editor_no_info_label.value,
                                                                 Texts.macros_editor_save_macros_button.name : Texts.macros_editor_save_macros_button.value,
                                                                 Texts.macros_editor_title_placeholder.name : Texts.macros_editor_title_placeholder.value,
-                                                                Texts.macros_editor_type_node_menu_placeholder.name : Texts.macros_editor_type_node_menu_placeholder.value}),
+                                                                Texts.macros_editor_type_node_menu_placeholder.name : Texts.macros_editor_type_node_menu_placeholder.value,
+                                                                }),
 
         }
 
