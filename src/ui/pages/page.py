@@ -107,9 +107,9 @@ class PageManager(metaclass=Singleton):
     def set_bind(self, page_name_to_bind: str, frame):
         self.__binds[page_name_to_bind] = frame
 
-    def redraw_page(self, name: str):
+    """ def redraw_page(self, name: str):
         self.__pages[name].pack_forget()
-        self.__pages[name] = self.page_builder(name)
+        self.__pages[name] = self.page_builder(name) """
 
     """ def _redraw(self):
         if len(self.__marked_for_redraw) == 0:
@@ -127,13 +127,13 @@ class PageManager(metaclass=Singleton):
         if len(self.__marked_for_redraw) == 0:
             return
         for name in self.__marked_for_redraw:
-            self.__pages[name].pack_forget()
-            self.__pages[name] = self.page_builder(name)
+            self._redraw_page(name)
         self.__marked_for_redraw = []
 
-    def on_opening_redraw(self, name: str):
-        if name in self.__marked_for_redraw:
-            self.__pages[name].pack_forget()
+    def _on_opening_redraw(self, name: str):
+        if name in self.__pages.keys():
+            self._redraw_page(name)
+        else:
             self.__pages[name] = self.page_builder(name)
 
     def _show_frame(self, name: str):
@@ -150,30 +150,51 @@ class PageManager(metaclass=Singleton):
             return
 
     def _show_page(self, name: str, redraw_frame: bool):
+        """
+        Метод відображення сторінок з перемалюванням. Перемалювання викликається у фоні після переходу на іншу сторінку.
+
+        Може викликати ефект, коли прив'язка скролінгу є на двох сторінках, то на одні сторінці після переходу з іншої
+        буде не працювати скролінг. (Якщо не використовувати прив'язки, то буде працювати добре)
+
+        Args:
+            name (str): ім'я сторінки
+            redraw_frame (bool): чи треба перемальовувати сторінку
+
+        Raises:
+            ValueError: Помилка, якщо немає зареєстрованого будівника для [name] типу сторінок
+        """
         if name != self.__current_page:
-            self._redraw()
+            self._backgroud_redraw()
             if redraw_frame:
                 self.__marked_for_redraw.append(name)
         
         if name not in self.__pages.keys():
             try: 
-                page = self.page_builder(name)
+                self.page_builder(name)
             except Exception as e:
                 raise ValueError(f'Cant show the Page for this name: {name}. Error msg: {e}')
         
         self._show_frame(name)
         
     def _show_page_without_back_redraw(self, name: str, redraw_frame: bool):
-
-        if name not in self.__pages.keys():
-            try: 
-                page = self.page_builder(name)
-            except Exception as e:
-                raise ValueError(f'Cant show the Page for this name: {name}. Error msg: {e}')
+        """
+        Метод відображення сторінок з перемалюванням. Перемалювання викликається одразу перед відкриттям сторінки.
         
-        if redraw_frame:
-            self.__marked_for_redraw.append(name)
-            self.on_opening_redraw(name)
+        Цей метод не такий плавний, як _show_page() який використовує перемалювання у фоні, але від оптимально 
+        працює з прив'язками скролінгу на linux
+
+        Args:
+            name (str): ім'я сторінки
+            redraw_frame (bool): чи треба перемальовувати сторінку
+
+        Raises:
+            ValueError: Помилка, якщо немає зареєстрованого будівника для [name] типу сторінок
+        """
+        if name == self.__current_page:
+            return
+        else:
+            if redraw_frame:
+                self._on_opening_redraw(name)
         
         self._show_frame(name)
         
@@ -190,28 +211,8 @@ class PageManager(metaclass=Singleton):
         self._show_page_without_back_redraw(name, redraw_frame)
 
     def create_and_go(self, name: str, page: Page, redraw_frame: bool = True):
-        
         self.set_page(name, page)
-        #self.show_page(name, redraw_frame)
-
         self._show_frame(name)
-        """ if self.__current_page == None:
-            self.__pages[name].pack_configure(fill='both', expand=True)
-            self.__current_page = name
-        elif self.__current_page != name:
-            self.__pages[self.__current_page].pack_forget()
-            page = self.__pages.get(name)
-            page.pack_configure(fill='both', expand=True)
-            
-            self.__current_page = name
-        else:
-            return """
-
-        """ if name != self.__current_page:
-            self._redraw()
-            if redraw_frame:
-                self.__marked_for_redraw.append(name) """
-        
 
     def hide_page(self, name: str):
         self.__pages.get(name).pack_forget()
@@ -226,16 +227,11 @@ class PageManager(metaclass=Singleton):
 
     def set_default_page(self, name: str):
         self.__default_page = name
-
-    """ def init_pages(self, pages: Dict[str, Union[Page, ScrollablePage]]):
-        for name, page in pages.items():
-            self.add_page(name, page) """
     
     def init_pages(self, pages: list[str]):
         for name in pages:
             page = self.page_builder(name)
             self.add_page(name, page)
-
 
 __page_manager = PageManager()
 

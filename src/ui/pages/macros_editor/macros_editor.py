@@ -40,7 +40,7 @@ class MacrosEditor(Page):
 
         # правильні прив'язки для роботи як в linux так і в windows
         # У Windows коліщатко миші прив’язується за допомогою <MouseWheel> методу, 
-        # але для машини Linux прив’язка коліщатка миші призначена <Button-4>для прокручування вгору та <Button-5>
+        # але для машини Linux прив’язка коліщатка миші призначена <Button-4> для прокручування вгору та <Button-5>
         self.scrollable_content.bind_all("<Button-4>", lambda e: self.scrollable_content._parent_canvas.yview("scroll", -1, "units"))
         self.scrollable_content.bind_all("<Button-5>", lambda e: self.scrollable_content._parent_canvas.yview("scroll", 1, "units"))
         

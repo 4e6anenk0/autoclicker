@@ -28,7 +28,8 @@ class MacrosManager:
         self.__path_to_metadata: Path = Path(path_to_metadata)
         self.__metadata: Dict[str, MacrosMetadata] = {} # завантажені глобальні метадані
         self.__macroses: Dict[str, Macros] = {} # завантажені макроси
-        print('MacrosManager was created')
+
+        self.__is_loaded_metadata: bool = False
         
 
     @property
@@ -44,9 +45,10 @@ class MacrosManager:
         Args:
             macros (Macros): макрос якій треба додати
         """
-      
+        
         self.__macroses[macros.uuid] = macros
-        self.__metadata[macros.uuid] = macros.metadata
+        if macros.metadata:
+            self.__metadata[macros.uuid] = macros.metadata
         return True
 
     def remove_macros(self, uuid: str, localy: bool = False) -> bool:
@@ -177,7 +179,7 @@ class MacrosManager:
             bool: чи вдалося завантажити усі макроси
         """
         try:
-            if self.load_global_metadata():
+            if self.__is_loaded_metadata:
                 for uuid, metadata in self.__metadata.items():
                     script = Script()
                     script.load_script_from_file(metadata['script_path'])
@@ -187,7 +189,7 @@ class MacrosManager:
             logger.exception(f'{e}')
             return False
         
-    def load_macroses(self, batch_size: int) -> Union[Generator[list[Macros], Any, None]]:
+    """ def load_macroses(self, batch_size: int) -> Union[Generator[list[Macros], Any, None]]:
         metadatas: list[MacrosMetadata] = list(self.__metadata.values())
         
         batch = []
@@ -195,6 +197,19 @@ class MacrosManager:
             print(i)
             for metadata in metadatas[i:i + batch_size]:
                 print(metadata)
+                batch.append(self.load_macros_by_metadata_file(metadata['metadata_path'])[0])
+            yield batch
+        batch = [] """
+    
+    def load_macroses(self, batch_size: int) -> Union[Generator[list[Macros], Any, None]]:
+        metadatas: list[MacrosMetadata] = list(self.__metadata.values())
+        
+        batch = []
+        for i in range(0, len(metadatas), batch_size):
+            print(f"Start index: {i}, End index: {i + batch_size - 1}")
+            
+            for metadata in metadatas[i:i + batch_size]:
+                print(metadata['name'])
                 batch.append(self.load_macros_by_metadata_file(metadata['metadata_path'])[0])
             yield batch
         batch = []
@@ -221,10 +236,6 @@ class MacrosManager:
         """
         try:
             for macros in self.__macroses.values():
-                """ if macros.uuid not in self.__metadata.keys():
-                    print('NEWWWWWWWW')
-                    print(f"Macros METADATA: MAcros: {macros.name}, METADATA: {macros.metadata}")
-                    self.__metadata[macros.uuid] = macros.metadata """
                 macros.save()
            
             self.save_global_metadata()
@@ -242,10 +253,14 @@ class MacrosManager:
         """
         try:
             data = {}
+
+            if len(self.__metadata.keys()) > 0:
+                for uuid, metadata in self.__metadata.items():
+                    data[uuid] = metadata.to_dict()
+
             for uuid, macros in self.__macroses.items():
-                
                 data[uuid] = macros.metadata.to_dict()
-            
+
             json_to_save = json.dumps(data, indent=4)
             
             with open(Path(self.__workdir, self.__metadata_filename), mode='w') as file:
@@ -262,20 +277,27 @@ class MacrosManager:
         for macros in self.__macroses.values():
             self.__metadata[macros.uuid] = macros.metadata
     
-    def load_global_metadata(self) -> bool:
+    def load_global_metadata(self):
         """
         Завантажити спільні (глобальні) метадані
 
         Returns:
             bool: чи вдалося завантажити дані
         """
-        data = self.load_metadata(self.__path_to_metadata)
-        if data:
-            self.__metadata = data
-            print(self.__metadata)
-            return True
-        else:
-            return False
+        datas = self.load_metadata(self.__path_to_metadata)
+
+        if datas:
+            for uuid, data in datas.items():
+                self.__metadata[uuid] = MacrosMetadata(uuid=data['uuid'], 
+                                             date=data['date'], 
+                                             name=data['name'], 
+                                             macros_dir_path=data['macros_dir_path'],
+                                             script_path=data['script_path'],
+                                             metadata_path=data['metadata_path'],
+                                             img_sources=data['img_sources'])
+
+            self.__is_loaded_metadata = True
+
 
     def load_metadata(self, path_to_file: str) -> Union[Dict[str, Any], None]:
         """
@@ -290,6 +312,12 @@ class MacrosManager:
         path = Path(path_to_file)
         if path.is_file() and path.suffix == '.json':
             with open(file=path) as file:
-                json_obj = json.load(file)
-            return json_obj
+                try:
+                    json_obj = json.load(file)
+                    print(json_obj)
+                    return json_obj
+                except Exception as e:
+                    logger.exception(f"Failed to load data from file. Maybe the file [{path}] has no data.", exc_info=False)
+                    return None
+            
             
