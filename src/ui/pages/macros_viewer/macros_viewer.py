@@ -1,31 +1,42 @@
-from typing import Any
-from customtkinter import CTkFrame, CTkButton, CTkScrollableFrame
+from typing import Any, Tuple
+from customtkinter import CTkFrame, CTkButton, CTkScrollableFrame, CTkLabel
 
 from src.clicker.models.macros import Macros
 from src.clicker.models.macros_manager import MacrosManager
 from src.settings.settings import Settings, get_settings
-from src.ui.pages.page import Page
+from src.ui.pages.page import Page, PageManager, Pages, get_page_manager
+from src.ui.pages.macros_editor.macros_editor import MacrosEditor
 
 
 class MacrosViewer(Page):
-    def __init__(self, master: Any, settings: Settings, macros_manager: MacrosManager = None, **kwargs):
+    def __init__(self, master: Any, settings: Settings, macros_manager: MacrosManager, **kwargs):
         super().__init__(master, settings, **kwargs)
         
-        #self.page_manager = PageManager()
+        self.page_manager = PageManager()
         
-        self.workdir = get_settings().macroses_path
-        self.macros_manager = macros_manager if macros_manager else MacrosManager(workdir=self.workdir, 
-                                                                                  path_to_metadata=self.workdir.joinpath('metadata.json'))
-        self.macros_manager.load_global_metadata()
+        #self.workdir = get_settings().macroses_path
+        self.macros_manager = macros_manager
+        #self.macros_manager.load_global_metadata()
+
+        self.macros_views: list[MacrosView] = []
 
         self.create_content().pack_configure(fill='both', expand=True)
+
 
         #self.get_macroses(batch_size=3)
 
 
     def get_macroses(self, batch_size: int):
         macros_batcher = self.macros_manager.load_macroses(batch_size)
-        print(next(macros_batcher))
+        macroses = next(macros_batcher)
+        print(type(macroses))
+        if macroses:
+            for macros in macroses:
+                if macros:
+                    view = MacrosView(self.scrollable_content, macros=macros)
+                    view.pack_configure(fill='x', expand=False, pady=10)
+                    self.macros_views.append(view)
+
 
 
 
@@ -45,7 +56,35 @@ class MacrosViewer(Page):
         self.scrollable_content.bind_all("<Button-4>", lambda e: self.scrollable_content._parent_canvas.yview("scroll", -1, "units"))
         self.scrollable_content.bind_all("<Button-5>", lambda e: self.scrollable_content._parent_canvas.yview("scroll", 1, "units"))
 
+        self.get_macroses(batch_size=8)
+
         return self.frame
+    
+class MacrosView(CTkFrame):
+    def __init__(self, master: Any, macros: Macros, **kwargs):
+        super().__init__(master, **kwargs)
+        self.macros = macros
+        self.is_checked = False
+        self.create_content().pack_configure(fill='both', expand=False)
+
+    def create_content(self) -> CTkFrame:
+        self.frame = CTkFrame(self, border_width=2, border_color='grey')
+        label = CTkLabel(self.frame, text=self.macros.name)
+        label.pack_configure(fill='x', expand=False, pady=20, padx=10)
+
+        label.bind("<Button-1>", self.on_click)
+        
+        
+        return self.frame
+
+    def on_click(self, event):
+        if not self.is_checked:
+            self.frame.configure(border_color='#1f6aa5')
+            self.is_checked = True
+        else:
+            self.frame.configure(border_color='grey')
+            self.is_checked = False
+
     
 
 class HeaderPanel(CTkFrame):
@@ -53,7 +92,7 @@ class HeaderPanel(CTkFrame):
         super().__init__(master, **kwargs)
         self.manager = manager
         
-
+        self.page_manager = PageManager()
 
         self.create_content().pack_configure(fill='both', expand=False)
 
@@ -82,9 +121,12 @@ class HeaderPanel(CTkFrame):
         return self.frame
     
     def add_macros(self):
-        """ macros = Macros(self.manager.workdir)
-        self.manager.add_macros(macros)
-        self.page_manager.show_page('MacrosEditor', macros=macros) """
+        frame = self.page_manager.get_binding_from_page(Pages.macros_editor)
+        macros = Macros(self.manager.workdir)
+        page = MacrosEditor(frame, self.manager, get_settings(), macros)
+        
+        self.page_manager.create_and_go(Pages.macros_editor, page)
+        
         
     
     def show_remove_btn(self):

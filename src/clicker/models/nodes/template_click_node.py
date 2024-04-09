@@ -8,12 +8,12 @@ from src.clicker.models.nodes.base_node import BaseScriptNode
 
 
 class TemplateClickNode(BaseScriptNode):
-    def __init__(self, data: str = 'Empty Data', button: Action = 'left', move: bool = False, count: int = 1, **kw):
+    def __init__(self, img_source: str = None, button: Action = 'left', move: bool = False, count: int = 1, **kw):
         super().__init__(action='click', **kw)
         self.button = button
         self.move = move
         self.count = count
-        self.data = data
+        self.img_source = img_source
     
     
     def apply(self, action_factory: ActionFactory):
@@ -21,7 +21,7 @@ class TemplateClickNode(BaseScriptNode):
         click_action.execute(x=self.x, y=self.y, button=self.button, move=self.move, count=self.count)
 
     def _load_data(self):
-        template = cv2.imread(self.data, cv2.IMREAD_COLOR)
+        template = cv2.imread(self.img_source, cv2.IMREAD_COLOR)
         return self._rgba_to_rgb(template)
     
     def _rgba_to_rgb(self, template):

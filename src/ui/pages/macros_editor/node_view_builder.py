@@ -17,9 +17,9 @@ class NodeViewBuilder:
         node_name: NodeName = node.name
         match node_name:
             case 'ClickNode':
-                return ClickNodeView(master, self.manager, node, node.get_data())
+                return ClickNodeView(master, self.manager, node, node.get_img_source())
             case 'TemplateClickNode':
-                return TemplateClickNodeView(master, self.manager, node, node.get_data())
+                return TemplateClickNodeView(master, self.manager, node, node.get_img_source())
 
 
 

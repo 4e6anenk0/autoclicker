@@ -26,8 +26,9 @@ class BaseScriptNode:
     def __str__(self) -> str:
        return f"Node name: [{self.name}], action: [{self.action}], id: [{self.uuid}]. \n"
 
-    def get_data(self) -> Union[str, None]:
-        value = getattr(self, 'data', None)
+    def get_img_source(self) -> Union[str, None]:
+        value = getattr(self, 'img_source', None)
+        value2 = getattr(self, 'name', None)
         return value
         
     def apply(self, action_factory: ActionFactory):

@@ -1,6 +1,7 @@
 from customtkinter import CTkFrame, CTkScrollableFrame, CTkFont, CTkEntry, CTkButton, CTkLabel, CTkOptionMenu
 from typing import Any
 
+from src.clicker.models.macros_manager import MacrosManager
 from src.clicker.models.nodes.node_factory import NodeFactory, NodeName
 from src.clicker.models.nodes.base_node import BaseScriptNode
 from src.clicker.models.script import Script
@@ -12,15 +13,19 @@ from src.ui.pages.macros_editor.node_view_builder import NodeViewBuilder
 
 
 class MacrosEditor(Page):
-    def __init__(self, master: Page, settings: Settings, macros: Macros = None, **kwargs):
+    def __init__(self, master: Page, macros_manager: MacrosManager, settings: Settings, macros: Macros = None, **kwargs):
         super().__init__(master, settings, **kwargs)
         self.macros = macros
-        self.script = Script() if macros is None else macros.script
+        self.script = Script() if not macros else macros.script
+        self.macros_manager = macros_manager
         self.node_manager = NodeViewManager(self.script)
         self.node_view_builder = NodeViewBuilder(self.node_manager)
-        
+        self.no_nodes_info = None
         self.create_content().pack_configure(fill='both', expand=True)
+        
+        self.fill_data_from_macros_if_exist()
 
+    
 
     def create_content(self) -> CTkFrame:
         self.frame = CTkFrame(self)
@@ -30,6 +35,8 @@ class MacrosEditor(Page):
         
         self.scrollable_content = CTkScrollableFrame(self.frame)
         self.scrollable_content.pack(fill='both', expand=True)
+
+        self.no_nodes_info = CTkLabel(self.scrollable_content, text=get_settings().get_ui_text(Texts.macros_editor_no_info_label), anchor='n')
 
         # правильні прив'язки для роботи як в linux так і в windows
         # У Windows коліщатко миші прив’язується за допомогою <MouseWheel> методу, 
@@ -61,7 +68,7 @@ class MacrosEditor(Page):
                 self.editing_node_views.append(node_view)
                 node_view.pack_configure(padx=(0, 10), pady=10) 
         else:
-            self.no_nodes_info = CTkLabel(self.scrollable_content, text=get_settings().get_ui_text(Texts.macros_editor_no_info_label), anchor='n')
+            #self.no_nodes_info = 
             self.no_nodes_info.pack_configure(pady=30)
 
         return self.frame
@@ -73,14 +80,26 @@ class MacrosEditor(Page):
         self.metadata_info.focus() """
 
     def fill_data_from_macros_if_exist(self):
+        print('fill_data_from_macros_if_exist')
+        print(self.macros)
         if self.macros:
-            self.title.insert(index='0.0', string=self.macros.name)
+            print(self.macros.name)
+            #self.title.delete(0)
+            self.title.insert(0, string=self.macros.name)
     
     def save(self):
         if self.check_data_to_save(): 
             if not self.macros:
                 self.macros = Macros(get_settings().macroses_path, name=self.title.get(), script=self.script)
-            self.macros.save()
+            self.update_macros_data()
+            self.macros_manager.add_macros(self.macros)
+            self.macros_manager.save_all_macroses()
+        
+        self.clear_all()
+            #self.macros.save()
+
+    def update_macros_data(self):
+        self.macros.set_name(self.title.get())
 
     def check_data_to_save(self) -> bool:
         if not self.title.get():
@@ -91,6 +110,7 @@ class MacrosEditor(Page):
             return True
 
     def clear_all(self):
+        self.title.delete(0, len(self.title.get()))
         self.node_manager.clear_all()
         self.macros = None
         self.script = Script()
@@ -98,14 +118,14 @@ class MacrosEditor(Page):
         self.show_no_data_info()
 
     def show_no_data_info(self):
-         self.no_nodes_info.pack_configure(pady=30)
+        self.no_nodes_info.pack_configure(pady=30)
 
     def create_node_view(self, node: BaseScriptNode):
         #return NodeView(self.scrollable_content, self, node=node)
         return self.node_view_builder.get_view(self.scrollable_content, node)
 
     def update_node_views(self):
-
+        print(f"Script: {self.script}")
         for node in self.script.get_nodes():
             if node.uuid not in self.node_manager.editing_nodes:
                 self.node_manager.editing_nodes[node.uuid] = node

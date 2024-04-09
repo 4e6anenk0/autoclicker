@@ -129,7 +129,8 @@ class Script:
         with open(file=path_to_file) as file: 
             json_obj = _json.load(file)
         for node in json_obj["script"]:
-            self.add_node(NodeFactory.create_node(node['name'], node))
+            img_source = node.get('img_source', None)
+            self.add_node(NodeFactory.create_node(node['name'], img_source if img_source else None))
 
     def get_node_by_uuid(self, uuid: str) -> Tuple[BaseScriptNode, NodePosition]:
         """
@@ -202,7 +203,7 @@ class Script:
         self.__nodal_view.remove(node)
         self.insert_node(node, new_index, order='before')
 
-    def get_data(self) -> Dict[str, str]:
+    def get_img_sources(self) -> Dict[str, str]:
         """
         Метод який дозволяє отримати усі шляхи до шаблонів з прив'язкою до ідентифікатора вузла, якому належить цей шаблон.
         
@@ -210,12 +211,13 @@ class Script:
         ці данні в вузли з відповідного файду метаданних.
 
         Returns:
-            Dict[str, str]: де Dict[(1), (2)] - 1. ідентифікатор вузла, 2. шлях до шаблону (якщо у вузла є `data`)
+            Dict[str, str]: де Dict[(1), (2)] - 1. ідентифікатор вузла, 2. шлях до шаблону (якщо у вузла є `img_source`)
         """
         data_collect = {}
         for node in self.__nodal_view:
-            data = node.get_data()
+            data = node.get_img_source()
             if data:
+                print(f"DATA in SCRIPT: {data}")
                 data_collect[str(node.uuid)] = data
         return data_collect
     

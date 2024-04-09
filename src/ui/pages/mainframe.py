@@ -1,7 +1,8 @@
 from typing import Any, Dict, Protocol, Tuple, Callable, Union
 
-from src.settings.settings import Settings, Texts
-from src.ui.pages.page import Page, PageManager, ScrollablePage
+from src.clicker.models.macros_manager import MacrosManager
+from src.settings.settings import Settings, Texts, get_settings
+from src.ui.pages.page import Page, PageManager, Pages, get_page_manager
 from src.ui.pages.settings import SettingsPage
 from src.ui.pages.home import HomePage
 from customtkinter import CTkFrame
@@ -23,11 +24,12 @@ class MainFrame(Page):
 
         self.master = master
 
-        self.page_manager = PageManager()
+        self.macros_manager = MacrosManager(workdir=get_settings().macroses_path, path_to_metadata=get_settings().macroses_path.joinpath('metadata.json'))
+        print('Load global metadata')
+        self.macros_manager.load_global_metadata()
+        #self.macros_manager.load_all_macroses()
 
-        """ self.__pages: Dict[str, Union[Page, ScrollablePage]] = {}
-        self.__default_page: str = None
-        self.__current_page: str = None """
+        self.page_manager = PageManager()
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -40,36 +42,22 @@ class MainFrame(Page):
         self.init_pages()
 
     def register_page_builders(self):
-        self.page_manager.register_builder('MacrosEditor', lambda: MacrosEditor(self.page_frame, settings=self.settings))
-        self.page_manager.register_builder('MacrosViewer', lambda: MacrosViewer(self.page_frame, settings=self.settings))
-        """ match page_name:
-            case 'SettingsPage':
-                return SettingsPage(self, settings=self.settings)
-            case 'HomePage':
-                return HomePage(self, settings=self.settings)
-            case 'MacrosEditor':
-                return MacrosEditor(self, settings=self.settings)
-            case 'MacrosViewer':
-                return MacrosViewer(self, settings=self.settings) """
-
-    def init_pages(self):
-        
-        self.page_manager.init_pages(
+        self.page_manager.register_pages(
             {
-                'SettingsPage' : SettingsPage(self.page_frame, settings=self.settings),
-                'HomePage' : HomePage(self.page_frame, settings=self.settings)
+                Pages.macros_editor : lambda: MacrosEditor(self.page_frame, settings=self.settings, macros_manager=self.macros_manager),
+                Pages.macros_viewer : lambda: MacrosViewer(self.page_frame, settings=self.settings, macros_manager=self.macros_manager),
+                Pages.home          : lambda: HomePage(self.page_frame, settings=self.settings),
+                Pages.settings      : lambda: SettingsPage(self.page_frame, settings=self.settings)
             }
         )
+
+    def init_pages(self):
+        #self.page_manager.set_bind(Pages.macros_editor, self.page_frame)
         self.register_page_builders()
-        self.page_manager.set_default_page('SettingsPage')
+        self.page_manager.init_pages([Pages.settings, Pages.home, Pages.macros_editor])
+        self.page_manager.set_default_page(Pages.settings)
         self.page_manager.show_default_page()
 
-        
-        """ self.add_page(SettingsPage(self, settings=self.settings))
-        self.add_page(HomePage(self, settings=self.settings)) """
-        #self.add_page(MacrosEditor(self, settings=self.settings))
-        #self.set_default_page('SettingsPage')
-        #self.show_default_page()
 
     def create_sidebar(self) -> CTkFrame:
         self.sidebar = Sidebar(self, settings=self.settings, menu_btn_callback=self.on_click_menu_btn, new_macros_callback=self.show_macros_editor)
@@ -81,49 +69,10 @@ class MainFrame(Page):
         self.action.mainloop()
 
     def show_macros_editor(self):
-        self.page_manager.show_page('MacrosEditor')
-        #self.show_page('MacrosEditor')
+        self.page_manager.show_page(Pages.macros_editor, redraw_frame=True)
 
     def on_click_menu_btn(self, page_name: str):
-        self.page_manager.show_page(page_name)
-        
-    
-    """ def show_default_page(self):
-        print(self.__default_page)
-        self.__pages[self.__default_page].grid_configure(row=0, column=1, sticky='wsne')
-        self.__current_page = self.__default_page
-    
-    def show_page(self, page_name: str):
-        if page_name not in self.__pages.keys():
-            self.__pages[page_name] = self.page_builder(page_name)
-
-        if self.__current_page == None:
-            self.__pages[page_name].grid_configure(row=0, column=1, sticky='wsne')
-            self.__current_page = page_name
-        elif self.__current_page != page_name:
-            self.__pages[self.__current_page].grid_remove()
-            self.__pages[page_name].grid_configure(row=0, column=1, sticky='wsne')
-            self.__current_page = page_name
-        else:
-            return
-        
-
-    def hide_page(self, page_name: str):
-        if self.__current_page == page_name:
-            self.__pages[page_name].grid_remove()
-
-    def remove_page(self, page_name: str):
-        if self.__current_page == page_name:
-            self.__pages[page_name].destroy()
-
-    def add_page(self, page: Union[Page, ScrollablePage]) -> Union[Page, ScrollablePage]:
-        self.__pages[page.__class__.__name__] = page
-
-    def set_default_page(self, page_name: str):
-        self.__default_page = page_name
-
-    def on_click_menu_btn(self, page_name: str):
-        self.show_page(page_name) """
+        self.page_manager.show_page(page_name, redraw_frame=True)
         
 
 class Sidebar(CTkFrame):
@@ -149,13 +98,13 @@ class Sidebar(CTkFrame):
         self.sidebar_btn_1 = SidebarButton(self.frame, settings=self.settings, text=Texts.new_macros_btn, command=self.new_macros_callback)
         self.sidebar_btn_1.grid_configure(row=0, column=0, padx=20, pady=10)
 
-        self.sidebar_btn_2 = SidebarButton(self.frame, settings=self.settings, text=Texts.home_btn, command=lambda: self.menu_btn_callback('HomePage'))
+        self.sidebar_btn_2 = SidebarButton(self.frame, settings=self.settings, text=Texts.home_btn, command=lambda: self.menu_btn_callback(Pages.home))
         self.sidebar_btn_2.grid_configure(row=1, column=0, padx=20, pady=10)
 
-        self.sidebar_btn_3 = SidebarButton(self.frame, settings=self.settings, text=Texts.macroses_viewer_btn, command=lambda: self.menu_btn_callback('MacrosViewer'))
+        self.sidebar_btn_3 = SidebarButton(self.frame, settings=self.settings, text=Texts.macroses_viewer_btn, command=lambda: self.menu_btn_callback(Pages.macros_viewer))
         self.sidebar_btn_3.grid_configure(row=2, column=0, padx=20, pady=10)
 
-        self.sidebar_btn_4 = SidebarButton(self.frame, settings=self.settings, text=Texts.settings_btn, command=lambda: self.menu_btn_callback('SettingsPage'))
+        self.sidebar_btn_4 = SidebarButton(self.frame, settings=self.settings, text=Texts.settings_btn, command=lambda: self.menu_btn_callback(Pages.settings))
         self.sidebar_btn_4.grid_configure(row=3, column=0, padx=20, pady=10)
 
         return self.frame

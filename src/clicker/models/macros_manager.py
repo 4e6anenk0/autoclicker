@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 import shutil
-from typing import Any, Dict, Union
+from typing import Any, Dict, Generator, Tuple, Union
 from uuid import UUID
 
 from src.clicker.models.macros_metadata import MacrosMetadata
@@ -28,6 +28,8 @@ class MacrosManager:
         self.__path_to_metadata: Path = Path(path_to_metadata)
         self.__metadata: Dict[str, MacrosMetadata] = {} # завантажені глобальні метадані
         self.__macroses: Dict[str, Macros] = {} # завантажені макроси
+        print('MacrosManager was created')
+        
 
     @property
     def workdir(self):
@@ -35,15 +37,17 @@ class MacrosManager:
 
     ### Робота з макросами індивідуально: ------------------------------------------------------------
 
-    def add_macros(self, macros: Macros):
+    def add_macros(self, macros: Macros) -> bool:
         """
         Додати макрос до поточного списку макросів
 
         Args:
             macros (Macros): макрос якій треба додати
         """
+      
         self.__macroses[macros.uuid] = macros
         self.__metadata[macros.uuid] = macros.metadata
+        return True
 
     def remove_macros(self, uuid: str, localy: bool = False) -> bool:
         """
@@ -71,7 +75,7 @@ class MacrosManager:
             logger.exception(f"{e}")
             return False
 
-    def load_macros_by_metadata(self, metadata: MacrosMetadata) -> bool:
+    def load_macros_by_metadata(self, metadata: MacrosMetadata) -> Tuple[Union[Macros, None], bool]:
         """
         Завнтажити макрос через метадані конкретного макросу
 
@@ -86,12 +90,12 @@ class MacrosManager:
             script.load_script_from_file(metadata.script_path)
             loaded_macros = Macros(self.__workdir, metadata.name, script, metadata.uuid)
             self.__macroses[metadata.uuid] = loaded_macros
-            return True
+            return loaded_macros, True
         except Exception as e:
             logger.exception(f'{e}')
-            return False
+            return None, False
 
-    def load_macros_by_metadata_file(self, metadata_file_path: str) -> bool:
+    def load_macros_by_metadata_file(self, metadata_file_path: str) -> Tuple[Union[Macros, None], bool]:
         """
         Завантажити макрос через передачу шляху до файлу локальних метаданих
 
@@ -106,14 +110,16 @@ class MacrosManager:
             if metadata:
                 script = Script()
                 script.load_script_from_file(metadata['script_path'])
-                self.__macroses[metadata['uuid']] = Macros(workdir=self.__workdir, 
-                                                        name=metadata['name'], 
-                                                        script=script, 
-                                                        uuid=UUID(metadata['uuid']))
-            return True
+
+                macros = Macros(workdir=self.__workdir, 
+                                name=metadata['name'], 
+                                script=script, 
+                                uuid=UUID(metadata['uuid']))
+                self.__macroses[metadata['uuid']] = macros
+            return macros, True
         except Exception as e:
             logger.exception(f'{e}')
-            return False
+            return None, False
             
     def get_macros_by_uuid(self, uuid: str) -> Macros:
         """
@@ -181,14 +187,17 @@ class MacrosManager:
             logger.exception(f'{e}')
             return False
         
-    def load_macroses(self, batch_size: int):
-        metadatas: list[MacrosMetadata] = self.__metadata.values()
-        data = []
+    def load_macroses(self, batch_size: int) -> Union[Generator[list[Macros], Any, None]]:
+        metadatas: list[MacrosMetadata] = list(self.__metadata.values())
+        
+        batch = []
         for i in range(0, len(metadatas), batch_size):
+            print(i)
             for metadata in metadatas[i:i + batch_size]:
-                data.append(self.load_macros_by_metadata_file(metadata.metadata_path))
-            yield data
-            data = []
+                print(metadata)
+                batch.append(self.load_macros_by_metadata_file(metadata['metadata_path'])[0])
+            yield batch
+        batch = []
     
     def get_macroses_by_filter():
         pass
@@ -212,8 +221,12 @@ class MacrosManager:
         """
         try:
             for macros in self.__macroses.values():
-                self.__metadata[macros.uuid] = macros.metadata
+                """ if macros.uuid not in self.__metadata.keys():
+                    print('NEWWWWWWWW')
+                    print(f"Macros METADATA: MAcros: {macros.name}, METADATA: {macros.metadata}")
+                    self.__metadata[macros.uuid] = macros.metadata """
                 macros.save()
+           
             self.save_global_metadata()
             return True
         except Exception as e:
@@ -230,7 +243,9 @@ class MacrosManager:
         try:
             data = {}
             for uuid, macros in self.__macroses.items():
+                
                 data[uuid] = macros.metadata.to_dict()
+            
             json_to_save = json.dumps(data, indent=4)
             
             with open(Path(self.__workdir, self.__metadata_filename), mode='w') as file:
@@ -257,6 +272,7 @@ class MacrosManager:
         data = self.load_metadata(self.__path_to_metadata)
         if data:
             self.__metadata = data
+            print(self.__metadata)
             return True
         else:
             return False
@@ -271,8 +287,9 @@ class MacrosManager:
         Returns:
             Union[Dict[str, Any], None]: Dict представлення метаданих
         """
-        if path_to_file.is_file() and path_to_file.suffix == '.json':
-            with open(file=path_to_file) as file:
+        path = Path(path_to_file)
+        if path.is_file() and path.suffix == '.json':
+            with open(file=path) as file:
                 json_obj = json.load(file)
             return json_obj
             

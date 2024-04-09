@@ -26,18 +26,20 @@ class Macros:
         """
         self.__workdir = workdir
         self.__macros_path = None
-        self.__script = script
-        self.__uuid = uuid1() if uuid == None else uuid
+        self.__script = Script() if not script else script
+        self.__uuid = uuid1() if not uuid else uuid
+        print(f"Script in macros: {self.__script}")
         self.__name = name
         self.__metadata: MacrosMetadata = None
+
 
     def __str__(self) -> str:
         return f"Macros: UUID - [{self.__uuid}], name - [{self.__name}] \n"
 
     @property
     def script(self):
-        if self.__macros_path:
-            return self.__script
+        #if self.__macros_path:
+        return self.__script
     
     @property
     def path(self):
@@ -74,22 +76,24 @@ class Macros:
         Цей метод сворює необхідні шляхи, директорії, файли для збереження даних макросу.
         Також він зберігає метадані у полі `self.__metadata` які потім груперуються в файлі `metadata.json`
         """
-        dirname = f"{date.today()} {self.__name}"
-        macros_path = self.__workdir.joinpath(dirname)
+        date_today = date.today()
+        folder_name = f"{date_today} {self.__name}"
+        macros_path = self.__workdir.joinpath(folder_name)
         self.__macros_path = macros_path
         create_destination_dir(macros_path.joinpath('data/'))
         script_path = macros_path.joinpath('script.json')
         self.__script.save_script_to_file(script_path)
-        data = self.__script.get_data()
+        img_sources = self.__script.get_img_sources()
         global_metadata_path = macros_path.parent.joinpath('metadata.json')
         create_destination_path(global_metadata_path)
         
         self.__metadata = MacrosMetadata(uuid=str(self.uuid),
-                                         name=self.__name, 
+                                         name=self.__name,
+                                         date=str(date_today),
                                          macros_dir_path=str(macros_path), 
                                          script_path=str(script_path), 
                                          metadata_path=str(macros_path.joinpath('metadata.json')), 
-                                         data=data)
+                                         img_sources=img_sources)
         
         self.save_macros_metadata()
         
@@ -124,4 +128,5 @@ class Macros:
         Returns:
             list[BaseScriptNode]: список вузлів що зберігає цей макрос
         """
+        print(self.script)
         return self.__script.get_nodes()
