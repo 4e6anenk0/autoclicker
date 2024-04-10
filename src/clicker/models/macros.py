@@ -28,8 +28,8 @@ class Macros:
         self.__macros_path = None
         self.__script = Script() if not script else script
         self.__uuid = uuid1() if not uuid else uuid
-        print(f"Script in macros: {self.__script}")
         self.__name = name
+        
         self.__metadata: MacrosMetadata = None
 
 
@@ -68,6 +68,12 @@ class Macros:
             self.__name = new_name
             return True
         return False
+    
+    def get_folder_name(self):
+        return f"{date.today()} {self.__name}"
+    
+    def get_macros_path(self):
+        return self.__workdir.joinpath(self.get_folder_name())
 
     def save(self):
         """
@@ -77,22 +83,24 @@ class Macros:
         Також він зберігає метадані у полі `self.__metadata` які потім груперуються в файлі `metadata.json`
         """
         date_today = date.today()
-        folder_name = f"{date_today} {self.__name}"
-        macros_path = self.__workdir.joinpath(folder_name)
-        self.__macros_path = macros_path
-        create_destination_dir(macros_path.joinpath('data/'))
-        script_path = macros_path.joinpath('script.json')
+        """ folder_name = f"{date_today} {self.__name}"
+        macros_path = self.__workdir.joinpath(folder_name) """
+        #self.__macros_path = macros_path
+        self.folder_name = self.get_folder_name()
+        self.__macros_path = self.get_macros_path()
+        create_destination_dir(self.__macros_path.joinpath('data/'))
+        script_path = self.__macros_path.joinpath('script.json')
         self.__script.save_script_to_file(script_path)
         img_sources = self.__script.get_img_sources()
-        global_metadata_path = macros_path.parent.joinpath('metadata.json')
+        global_metadata_path = self.__macros_path.parent.joinpath('metadata.json')
         create_destination_path(global_metadata_path)
         
         self.__metadata = MacrosMetadata(uuid=str(self.uuid),
                                          name=self.__name,
                                          date=str(date_today),
-                                         macros_dir_path=str(macros_path), 
+                                         macros_dir_path=str(self.__macros_path), 
                                          script_path=str(script_path), 
-                                         metadata_path=str(macros_path.joinpath('metadata.json')), 
+                                         metadata_path=str(self.__macros_path.joinpath('metadata.json')), 
                                          img_sources=img_sources)
         
         self.save_macros_metadata()

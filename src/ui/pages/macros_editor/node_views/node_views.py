@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 from customtkinter import CTkFrame, CTkLabel, CTkEntry, CTkComboBox, CTkCheckBox, CTkToplevel
 
@@ -128,16 +129,26 @@ class TemplateClickNodeView(NodeView):
 
         return self.frame
     
-    def save_callback(self, img):
-        save_img(img, path=self.manager)
+    """ def save_callback(self, img):
+        save_img(img, path=self.manager) """
     
     def fill_from_node(self, node: ClickNode):
         self.button_type.set(node.button)
         self.count_of_click.insert(0, str(node.count))
         self.use_move.toggle(int(node.move))
 
+    """ def set_path_to_img(self):
+        path_to_img
+        if self.path_to_img != path:
+            self.path_to_img = path """
+
     def update_node(self):
         #self.node.img_source = self.
         self.node.button = self.button_type.get()
         self.node.count = int(self.count_of_click.get())
         self.node.move = bool(self.use_move.get())
+        
+        if self.manager.path_to_data:
+            path_to_img = str(Path(self.manager.path_to_data).joinpath(f"{self.node_id}.png"))
+            if self.node.img_source != path_to_img:
+                self.node.img_source = path_to_img

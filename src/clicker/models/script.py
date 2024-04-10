@@ -5,6 +5,7 @@ from typing import Literal, NewType, Dict, Tuple, Union
 import json as _json
 from uuid import UUID
 
+from src.clicker.core.action_factory import ActionFactory
 from src.clicker.models.nodes import BaseScriptNode, NodeFactory
 from src.utils import AppLogger
 
@@ -18,6 +19,7 @@ class Script:
     """
     def __init__(self):
         self.__nodal_view: list[BaseScriptNode] = []
+        self.action_factory = ActionFactory()
 
     def __str__(self) -> str:
         buffer = io.StringIO()
@@ -66,7 +68,7 @@ class Script:
         Метод який запускає скрипт
         """
         for node in self.__nodal_view:
-            pass
+            node.apply(action_factory=self.action_factory)
 
     def insert_node(self, node: BaseScriptNode, index: Union[NodePosition, int], order: Literal['before', 'after']):
         """

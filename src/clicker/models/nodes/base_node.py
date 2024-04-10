@@ -28,7 +28,6 @@ class BaseScriptNode:
 
     def get_img_source(self) -> Union[str, None]:
         value = getattr(self, 'img_source', None)
-        value2 = getattr(self, 'name', None)
         return value
         
     def apply(self, action_factory: ActionFactory):

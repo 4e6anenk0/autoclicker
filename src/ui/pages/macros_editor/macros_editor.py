@@ -20,7 +20,6 @@ class MacrosEditor(Page):
         self.macros_manager = macros_manager
         self.node_manager = NodeViewManager(self.script)
         self.node_view_builder = NodeViewBuilder(self.node_manager)
-        self.editing_nodes = []
         self.no_nodes_info = None
         
         self.create_content().pack_configure(fill='both', expand=True)
@@ -90,18 +89,23 @@ class MacrosEditor(Page):
             self.title.insert(0, string=self.macros.name)
     
     def save(self):
-        self.node_manager.synchronize_data_from_view()
-        self.node_manager.editing_nodes_to_script()
         if self.check_data_to_save(): 
             if not self.macros:
-                self.macros = Macros(get_settings().macroses_path, name=self.title.get(), script=self.script)
+                self.macros = Macros(get_settings().macroses_path, name=self.title.get())
             
+            self.node_manager.set_path_to_data(str(self.macros.get_macros_path().joinpath('data/')))
+            
+            self.node_manager.synchronize_data_from_view()
+            self.node_manager.editing_nodes_to_script()
+            self.macros.add_script(self.script)
             self.update_macros_data()
             self.macros_manager.add_macros(self.macros)
             self.macros_manager.save_all_macroses()
+            
+            self.node_manager.save_images()
+            #self.node_manager.save_images(str(self.macros.macros_path.joinpath('data/')))
         
         self.clear_all()
-            #self.macros.save()
 
     def update_macros_data(self):
         self.macros.set_name(self.title.get())
@@ -127,18 +131,15 @@ class MacrosEditor(Page):
         self.no_nodes_info.pack_configure(pady=30)
 
     def create_node_view(self, node: BaseScriptNode):
-        #return NodeView(self.scrollable_content, self, node=node)
         return self.node_view_builder.get_view(self.scrollable_content, node)
 
     def update_node_views(self):
-        
-        #for node in self.script.get_nodes():
-        for node in self.editing_nodes:
+        for node in self.script.get_nodes():
             if node.uuid not in self.node_manager.editing_nodes:
                 self.node_manager.editing_nodes[node.uuid] = node
 
                 node_view = self.create_node_view(node)
-                
+                    
                 self.node_manager.editing_node_views.append(node_view)
                 node_view.pack_configure(padx=(0, 10), pady=10)
         
@@ -188,20 +189,12 @@ class HeaderPanel(CTkFrame):
         if type_node in self.node_names:
             if self.editor.no_nodes_info:
                 self.editor.no_nodes_info.pack_forget()
-            self.show_clear_all_button()
-            
+            self.show_clear_all_button() 
             
             new_node = NodeFactory.create_node(type_node)
 
-            self.editor.editing_nodes.append(new_node)
+            self.editor.node_manager.add_node(new_node)
             self.pack_node()
-
-            """ if self.editor.macros:
-                self.editor.macros.add_node(new_node)
-                self.pack_node()
-            else:
-                self.editor.node_manager.add_node(new_node)
-                self.pack_node() """
 
 
     def pack_node(self):

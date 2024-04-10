@@ -14,8 +14,8 @@ class MediaView(CTkFrame):
         self.is_selectable = is_selectable
         self.node_view = node_view
         self.create_content().pack_configure(fill='both', expand=True)
-
-    
+        
+            
         
 
     """ def sender(self):
@@ -61,6 +61,7 @@ class ScreenshotInput(CTkFrame):
         
         return self.frame
     
+    
     def show_screenshot_action(self):
         self.action = ScreenshotAction(self.master, lambda img: self.after_screenshot_action(img))
         self.action.bind('<Escape>', lambda event: self.action.destroy())
@@ -68,10 +69,11 @@ class ScreenshotInput(CTkFrame):
     
     def after_screenshot_action(self, img):
         self.node_view.img = img
+        #self.node_view.img = img
         resized_img = resize_img(img, (150, 150))
         #save_img(img, path=self.path_to_img, name=self.node_id)
         #self.save_callback(resized_img)
-        self.node_view.rimg = resize_img
+        #self.node_view.rimg = resize_img
         img_view = CTkImage(resized_img, size = resized_img.size)
 
         image_label = CTkLabel(self.frame, image=img_view, text="", height=self.height, width=self.height)

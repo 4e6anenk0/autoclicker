@@ -7,6 +7,7 @@ from src.clicker.models.nodes.click_node import ClickNode
 from src.ui.widgets.alert import Alert
 from src.ui.pages.macros_editor.node_views.widgets.media_view import MediaView
 from src.ui.pages.macros_editor.node_views.widgets.node_view_manipulator import NodeViewManipulator
+from src.utils.file_helper.file_helper import save_img
 
 
 class NodeView(CTkFrame):
@@ -36,6 +37,12 @@ class NodeView(CTkFrame):
             self.alert = Alert(callback_confirm=self.remove_node, callback_discard=self.remove_alert, confirm_btn_text='Так', discard_btn_text='Ні', msg='Чи хочете ви видалити вузол?')
         else:
             self.alert.focus()
+
+    """ def save_image(self, path: str):
+        if self.img:
+            self.path_to_img = f"{path}{self.node_id}"
+            save_img(self.img, path=self.path, name=f"{self.node_id}") """
+            #save_img(self.img, path=self.path, name=f"{self.node_id}_rsize")
     
     def remove_node(self):
         self.manager.remove_node(self.node.uuid)
@@ -53,3 +60,7 @@ class NodeView(CTkFrame):
 
     def update_node(self):
         pass
+
+    def save_img_data(self, path: str):
+        if self.img:
+            save_img(self.img, path=path, name=self.node_id)

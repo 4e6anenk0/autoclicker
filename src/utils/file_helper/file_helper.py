@@ -47,7 +47,7 @@ def load_img(path: str, resize: Tuple[int, int] = None):
 
 def save_img(img: Image.Image, path: str, name: str):
     path = Path(path, name)
-    img.save(path, "png")
+    img.save(f"{path}.png", "PNG")
 
 def resize_img(img: Image.Image, size: Tuple[int, int]):
         (current_width, current_height) = img.size

@@ -8,7 +8,8 @@ class NodeViewManager:
     def __init__(self, script: Script):
         self.script = script
         self.editing_nodes: Dict[str, BaseScriptNode] = {}
-        self.editing_node_views: list[NodeView] = [] 
+        self.editing_node_views: list[NodeView] = []
+        self.path_to_data = None
     
     def add_node(self, node: BaseScriptNode):
         """
@@ -17,6 +18,7 @@ class NodeViewManager:
         Args:
             node (BaseScriptNode): вузол скрипту
         """
+        #self.editing_nodes[node.uuid] = node
         self.script.add_node(node)
 
     def editing_nodes_to_script(self):
@@ -25,6 +27,15 @@ class NodeViewManager:
     def synchronize_data_from_view(self):
         for node in self.editing_node_views:
             node.update_node()
+
+    def set_path_to_data(self, path: str):
+        if self.path_to_data != path:
+            self.path_to_data = path
+
+    def save_images(self):
+        if self.path_to_data:
+            for node in self.editing_node_views:
+                node.save_img_data(self.path_to_data)
     
     def remove_node(self, node_id: str):
         """
