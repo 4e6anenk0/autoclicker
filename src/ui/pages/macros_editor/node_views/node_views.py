@@ -9,6 +9,7 @@ from src.ui.pages.macros_editor.node_view_manager import NodeViewManager
 from src.ui.pages.macros_editor.node_views.node_view import NodeView
 from src.ui.pages.macros_editor.node_views.widgets.media_view import MediaView
 from src.ui.pages.macros_editor.node_views.widgets.node_view_manipulator import NodeViewManipulator
+from src.utils.file_helper.file_helper import save_img
 
 
 
@@ -16,20 +17,20 @@ from src.ui.pages.macros_editor.node_views.widgets.node_view_manipulator import 
 class ClickNodeView(NodeView):
     def __init__(self, master: Any, manager: Any, node: ClickNode = None, path_to_img: str = None, **kwargs):
         super().__init__(master, manager, node, path_to_img, **kwargs)
-
+        self.node = node
         self.create_content().pack_configure(fill='both', expand=True)
 
     def create_content(self):
         #self.frame = CTkFrame(self, fg_color='transparent', bg_color='transparent')
 
-        data_view = CTkFrame(self.frame)
+        data_view = CTkFrame(self.frame, fg_color="transparent")
 
-        row_1 = CTkFrame(data_view)
+        row_1 = CTkFrame(data_view, fg_color="transparent")
         info = CTkLabel(row_1, text=f'Node: {self.node.name}', anchor='w')
         info.pack_configure(fill='both', expand=True)
         row_1.pack_configure(fill='x', expand=False, padx=5, pady=(10, 5))
 
-        row_2 = CTkFrame(data_view)
+        row_2 = CTkFrame(data_view, fg_color="transparent")
         row_2.grid_columnconfigure([1,3], weight=1, minsize=100)
         x_label = CTkLabel(row_2, text='X:', anchor='w')
         x_label.grid_configure(row=0, column=0, sticky='w', padx=(0, 10))
@@ -41,7 +42,7 @@ class ClickNodeView(NodeView):
         self.y_input.grid_configure(row=0, column=3, sticky='we', padx=(0, 10))
         row_2.pack_configure(fill='x', expand=False, padx=5, pady=5)
 
-        row_3 = CTkFrame(data_view)
+        row_3 = CTkFrame(data_view, fg_color="transparent")
         row_3.grid_columnconfigure([1], weight=1, minsize=60)
         row_3.grid_columnconfigure([3], weight=1, minsize=40)
         button_type_label = CTkLabel(row_3, text='Клавіша миші:')
@@ -54,7 +55,7 @@ class ClickNodeView(NodeView):
         self.count_of_click.grid_configure(row=0, column=3, sticky='w', padx=(0, 10))
         row_3.pack_configure(fill='x', expand=False, padx=5, pady=5)
 
-        row_4 = CTkFrame(data_view)
+        row_4 = CTkFrame(data_view, fg_color="transparent")
         use_move_label = CTkLabel(row_4, text='Показувати переміщення:')
         use_move_label.grid_configure(row=0, column=0, sticky='w')
         self.use_move = CTkCheckBox(row_4, text='')
@@ -75,10 +76,18 @@ class ClickNodeView(NodeView):
         self.count_of_click.insert(0, str(node.count))
         self.use_move.toggle(int(node.move))
 
+    def update_node(self):
+        self.node.x = int(self.x_input.get())
+        self.node.y = int(self.y_input.get())
+        self.node.button = self.button_type.get()
+        self.node.count = int(self.count_of_click.get())
+        self.node.move = bool(self.use_move.get())
+
 
 class TemplateClickNodeView(NodeView):
     def __init__(self, master: Any, manager: Any, node: TemplateClickNode = None, path_to_img: str = None, **kwargs):
-        super().__init__(master, manager, node, path_to_img, **kwargs)
+        super().__init__(master, manager, node, path_to_img, True, **kwargs)
+        self.node = node
 
         self.create_content().pack_configure(fill='both', expand=True)
 
@@ -87,14 +96,14 @@ class TemplateClickNodeView(NodeView):
 
         #self.frame.grid_columnconfigure([1], weight=1)
 
-        data_view = CTkFrame(self.frame)
+        data_view = CTkFrame(self.frame, fg_color="transparent")
 
-        row_1 = CTkFrame(data_view)
+        row_1 = CTkFrame(data_view, fg_color="transparent")
         info = CTkLabel(row_1, text=f'Node: {self.node.name}', anchor='w')
         info.pack_configure(fill='both', expand=True)
         row_1.pack_configure(fill='x', expand=False, padx=5, pady=(10, 5))
 
-        row_2 = CTkFrame(data_view)
+        row_2 = CTkFrame(data_view, fg_color="transparent")
         button_type_label = CTkLabel(row_2, text='Клавіша миші:')
         button_type_label.grid_configure(row=0, column=0, sticky='w', padx=(0, 10))
         self.button_type = CTkComboBox(row_2, values=['left', 'right'])
@@ -105,7 +114,7 @@ class TemplateClickNodeView(NodeView):
         self.count_of_click.grid_configure(row=0, column=3, sticky='w', padx=(0, 10))
         row_2.pack_configure(fill='x', expand=False, padx=5, pady=5)
 
-        row_3 = CTkFrame(data_view)
+        row_3 = CTkFrame(data_view, fg_color="transparent")
         use_move_label = CTkLabel(row_3, text='Показувати переміщення:')
         use_move_label.grid_configure(row=0, column=0, sticky='w')
         self.use_move = CTkCheckBox(row_3, text='')
@@ -119,7 +128,16 @@ class TemplateClickNodeView(NodeView):
 
         return self.frame
     
+    def save_callback(self, img):
+        save_img(img, path=self.manager)
+    
     def fill_from_node(self, node: ClickNode):
         self.button_type.set(node.button)
         self.count_of_click.insert(0, str(node.count))
         self.use_move.toggle(int(node.move))
+
+    def update_node(self):
+        #self.node.img_source = self.
+        self.node.button = self.button_type.get()
+        self.node.count = int(self.count_of_click.get())
+        self.node.move = bool(self.use_move.get())

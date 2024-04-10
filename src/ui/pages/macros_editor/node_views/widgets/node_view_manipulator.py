@@ -16,7 +16,7 @@ class NodeViewManipulator(CTkFrame):
         self.create_content().pack_configure(fill='both', expand=True)
     
     def create_content(self) -> CTkFrame:
-        self.frame = CTkFrame(self, fg_color='transparent', bg_color='transparent',)
+        self.frame = CTkFrame(self)
 
         trash_img = load_img(get_settings().root_path.joinpath('src/icons/delete-trash.png'), resize=(40, 40))
         ctk_trash_img = CTkImage(trash_img)

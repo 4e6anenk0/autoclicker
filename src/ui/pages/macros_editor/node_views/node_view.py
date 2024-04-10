@@ -1,5 +1,6 @@
-from typing import Any
-from customtkinter import CTkFrame, CTkLabel, CTkEntry, CTkComboBox, CTkCheckBox, CTkToplevel
+from typing import Any, Callable, Tuple
+from customtkinter import CTkFrame, CTkToplevel
+from PIL.Image import Image
 
 from src.clicker.models.nodes.base_node import BaseScriptNode
 from src.clicker.models.nodes.click_node import ClickNode
@@ -9,15 +10,18 @@ from src.ui.pages.macros_editor.node_views.widgets.node_view_manipulator import 
 
 
 class NodeView(CTkFrame):
-    def __init__(self, master: Any, manager: Any, node: BaseScriptNode = None, path_to_img: str = None, **kwargs):
+    def __init__(self, master: Any, manager: Any, node: BaseScriptNode, path_to_img: str = None, is_selectable: bool = False, **kwargs):
         super().__init__(master, **kwargs)
         self.manager = manager
         self.node = node
         self.node_id = node.uuid
         self.alert: CTkToplevel = None
         self.path_to_img = path_to_img
-        
-        self.frame = CTkFrame(self, fg_color='transparent', bg_color='transparent')
+        self.is_selectable = is_selectable
+        self.img: Image = None
+        self.rimg: Image = None
+
+        self.frame = CTkFrame(self)
         self.frame.grid_columnconfigure([1], weight=1)
 
         self.build_media_view()
@@ -40,11 +44,12 @@ class NodeView(CTkFrame):
         self.destroy()
 
     def build_media_view(self):
-        self.media_view = MediaView(self.frame, path_to_img=self.path_to_img)
+        self.media_view = MediaView(self.frame, path_to_img=self.path_to_img, is_selectable=self.is_selectable, node_view=self)
         self.media_view.grid_configure(row=0, column=0, sticky='nws')
 
     def build_manipulator_view(self):
         self.manipulator_view = NodeViewManipulator(self.frame, self.node, self.manager.lift_up_node, self.manager.lift_down_node, self.show_remove_alert)
         self.manipulator_view.grid_configure(row=0, column=2, sticky='nes', padx=(20, 0))
 
-    
+    def update_node(self):
+        pass

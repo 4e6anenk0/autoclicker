@@ -12,8 +12,6 @@ class NodeFactory:
         print(f"Node name is: {node_name}")
         match node_name:
             case 'TemplateClickNode':
-                print('TemplateClickNode will be create')
-                print(f"DATA in NodeFactory: {img_source}")
                 return TemplateClickNode(img_source=img_source)
             case 'ClickNode':
                 return ClickNode()

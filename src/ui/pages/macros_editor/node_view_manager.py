@@ -18,6 +18,13 @@ class NodeViewManager:
             node (BaseScriptNode): вузол скрипту
         """
         self.script.add_node(node)
+
+    def editing_nodes_to_script(self):
+        self.script.add_nodes(self.editing_nodes.values())
+
+    def synchronize_data_from_view(self):
+        for node in self.editing_node_views:
+            node.update_node()
     
     def remove_node(self, node_id: str):
         """

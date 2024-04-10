@@ -1,15 +1,17 @@
 from pathlib import Path
 from tkinter import Event
+from typing import Any, Callable
 from PIL import ImageGrab
+from PIL.Image import Image
 from customtkinter import CTkFrame, CTk, CTkToplevel, CTkCanvas
 from src.settings.settings import Settings
 from src.ui.pages.page import Page
 
         
 class ScreenshotAction(CTkToplevel):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+    def __init__(self, master, after_screenshot: Callable[[Image], Any] = lambda img: None, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
+        self.after_screenshot = after_screenshot
         self.screen_size = (self.winfo_screenwidth(), self.winfo_screenheight())
         
         self.resizable(False, False)
@@ -18,12 +20,16 @@ class ScreenshotAction(CTkToplevel):
         self.wait_visibility(self)
         self.attributes('-alpha', 0.3)
         self.attributes('-topmost', 1)
+
+        self.screenshot = None
+
+        self.start_x = None
+        self.start_y = None
+        
         self.create_content().pack_configure(fill='both', expand=False)
         
         self.focus()
 
-        self.start_x = None
-        self.start_y = None
 
 
     def draw_rectangle(self, event):
@@ -52,10 +58,17 @@ class ScreenshotAction(CTkToplevel):
         self.start_x = None
         self.start_y = None
 
-        
+        self.forget(self)
+    
         screenshot = ImageGrab.grab(bbox=(left_x, top_y, right_x, bottom_y))
-        screenshot.save("screenshot.png", "PNG")
+        #screenshot.save("screenshot.png", "PNG")
         #print("MakeScreen")
+        #return screenshot
+        self.screenshot = screenshot
+        
+        self.after_screenshot(screenshot)
+        
+        self.destroy()
 
 
     def create_content(self) -> CTkCanvas:
