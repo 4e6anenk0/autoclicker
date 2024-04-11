@@ -6,11 +6,9 @@ from typing import Dict
 from src.settings.ini_handlers.ini_worker import IniWorker
 from src.settings.ini_handlers.section import Section
 
-""" from src.utils.file_helper.file_helper import * """
-""" from src.utils.logger.logger import AppLogger """
+from src.utils.logger.logger import AppLogger
 
 from src.utils import *
-
 
 logger = AppLogger.get_logger(__name__)
 

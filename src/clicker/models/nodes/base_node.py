@@ -1,8 +1,7 @@
-from typing import Dict, Union
+from typing import Union
 import uuid as setid
 
 from src.clicker.core.action_factory import Action, ActionFactory
-
 
 class BaseScriptNode:
     def __init__(self, action: Action, uuid: str = None, **kw):

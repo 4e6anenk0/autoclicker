@@ -121,7 +121,6 @@ class MacrosManager:
                                 script=script, 
                                 uuid=UUID(metadata['uuid']))
                 self.__macroses[metadata['uuid']] = macros
-            print(macros)
             return macros, True
         except Exception as e:
             logger.exception(f'{e}')
@@ -192,25 +191,12 @@ class MacrosManager:
         except Exception as e:
             logger.exception(f'{e}')
             return False
-        
-    """ def load_macroses(self, batch_size: int) -> Union[Generator[list[Macros], Any, None]]:
-        metadatas: list[MacrosMetadata] = list(self.__metadata.values())
-        
-        batch = []
-        for i in range(0, len(metadatas), batch_size):
-            print(i)
-            for metadata in metadatas[i:i + batch_size]:
-                print(metadata)
-                batch.append(self.load_macros_by_metadata_file(metadata['metadata_path'])[0])
-            yield batch
-        batch = [] """
     
     def load_macroses(self, batch_size: int) -> Union[Generator[list[Macros], Any, None]]:
         metadatas: list[MacrosMetadata] = list(self.__metadata.values())
         
         
         for i in range(0, len(metadatas), batch_size):
-            print(f"Start index: {i}, End index: {i + batch_size - 1}")
             batch = []
             for metadata in metadatas[i:i + batch_size]:
                 data = self.load_macros_by_metadata_file(metadata.metadata_path)[0]
@@ -259,12 +245,6 @@ class MacrosManager:
         """
         try:
             data = {}
-
-            """ if len(self.__metadata.keys()) > 0:
-                for uuid, metadata in self.__metadata.items():
-                    if metadata:
-                        data[uuid] = metadata.to_dict() """
-
             for uuid, macros in self.__macroses.items():
                 if macros.metadata:
                     data[uuid] = macros.metadata.to_dict()
@@ -323,7 +303,6 @@ class MacrosManager:
             with open(file=path) as file:
                 try:
                     json_obj = json.load(file)
-                    print(json_obj)
                     return json_obj
                 except Exception as e:
                     logger.exception(f"Failed to load data from file. Maybe the file [{path}] has no data.", exc_info=False)

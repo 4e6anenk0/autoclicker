@@ -1,7 +1,6 @@
-from typing import Literal, NewType
+from typing import Literal
 from src.clicker.models.nodes.click_node import ClickNode
 from src.clicker.models.nodes.template_click_node import TemplateClickNode
-
 
 NodeName = Literal['TemplateClickNode', 'ClickNode']
 

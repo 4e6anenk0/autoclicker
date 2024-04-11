@@ -13,9 +13,9 @@ class ScreenshotAction(CTkToplevel):
         super().__init__(master, *args, **kwargs)
         self.after_screenshot = after_screenshot
         self.screen_size = (self.winfo_screenwidth(), self.winfo_screenheight())
-        
         self.resizable(False, False)
-        self.wm_attributes('-type', 'splash')
+        #self.wm_attributes('-type', 'splash') # this work on linux
+        self.wm_attributes('-fullscreen', 1) # this work on windows
         self.geometry(f'{self.screen_size[0]}x{self.screen_size[1]}')
         self.wait_visibility(self)
         self.attributes('-alpha', 0.3)
@@ -31,7 +31,6 @@ class ScreenshotAction(CTkToplevel):
         self.focus()
 
 
-
     def draw_rectangle(self, event):
         self.canvas.delete('all')
 
@@ -43,11 +42,6 @@ class ScreenshotAction(CTkToplevel):
         self.end_y = event.y
 
         self.canvas.create_rectangle(self.start_x, self.start_y, self.end_x, self.end_y, fill='red')
-
-            #print("Draw rectangle")
-
-        """ self.start_x = None
-        self.start_y = None """
 
 
     def make_screenshot(self, event):
@@ -61,9 +55,6 @@ class ScreenshotAction(CTkToplevel):
         self.forget(self)
     
         screenshot = ImageGrab.grab(bbox=(left_x, top_y, right_x, bottom_y))
-        #screenshot.save("screenshot.png", "PNG")
-        #print("MakeScreen")
-        #return screenshot
         self.screenshot = screenshot
         
         self.after_screenshot(screenshot)
@@ -73,19 +64,8 @@ class ScreenshotAction(CTkToplevel):
 
     def create_content(self) -> CTkCanvas:
         self.canvas = CTkCanvas(self, height = self.screen_size[1], width = self.screen_size[0], background='#000000')
-        #self.canvas.create_oval(4000, 900, 500, 2500, fill='red')
         self.canvas.bind('<B1-Motion>', self.draw_rectangle)
         self.canvas.bind('<ButtonRelease-1>', self.make_screenshot)
-        
-        #self.canvas.pack_configure()
 
         return self.canvas
         
-
-""" class SelectionRectangle:
-    def __init__(self):
-        start_x: int
-        start_y: int
-
-
-    def draw(self, ) """

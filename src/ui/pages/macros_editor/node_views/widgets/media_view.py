@@ -1,10 +1,9 @@
-from pathlib import Path
-from typing import Any, Callable, Tuple
+from typing import Any
 from customtkinter import CTkFrame, CTkImage, CTkLabel, CTkButton, CTkFont
-from PIL.Image import Image
 
-from src.utils.file_helper.file_helper import load_img, resize_img, save_img
+from src.utils.file_helper.file_helper import load_img, resize_img
 from src.ui.widgets.screenshot_action import ScreenshotAction
+
 
 class MediaView(CTkFrame):
     def __init__(self, master: Any, node_view: Any, path_to_img: str = None, height: int = 200, is_selectable: bool = False, **kwargs):
@@ -14,12 +13,6 @@ class MediaView(CTkFrame):
         self.is_selectable = is_selectable
         self.node_view = node_view
         self.create_content().pack_configure(fill='both', expand=True)
-        
-            
-        
-
-    """ def sender(self):
-        return self.action.screenshot """
         
     def create_content(self) -> CTkFrame:
         self.frame = CTkFrame(self)
@@ -55,12 +48,10 @@ class ScreenshotInput(CTkFrame):
 
     def create_content(self):
         self.frame = CTkFrame(self)
-
         self.button = CTkButton(self.frame, fg_color='transparent', hover_color='green', text='+', font=CTkFont(size=20, weight='bold'), command=self.show_screenshot_action, width=self.width, height=self.height)
         self.button.pack_configure(fill='both', expand=True)
         
         return self.frame
-    
     
     def show_screenshot_action(self):
         self.action = ScreenshotAction(self.master, lambda img: self.after_screenshot_action(img))
@@ -69,11 +60,9 @@ class ScreenshotInput(CTkFrame):
     
     def after_screenshot_action(self, img):
         self.node_view.img = img
-        #self.node_view.img = img
+
         resized_img = resize_img(img, (150, 150))
-        #save_img(img, path=self.path_to_img, name=self.node_id)
-        #self.save_callback(resized_img)
-        #self.node_view.rimg = resize_img
+
         img_view = CTkImage(resized_img, size = resized_img.size)
 
         image_label = CTkLabel(self.frame, image=img_view, text="", height=self.height, width=self.height)

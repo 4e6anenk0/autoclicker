@@ -4,6 +4,10 @@ from typing import Any, Callable, Dict, Tuple, Union
 from customtkinter import CTkFrame, CTkScrollableFrame
 
 from src.settings.settings import Settings
+from src.utils.logger.logger import AppLogger
+
+logger = AppLogger.get_logger(__name__)
+
 
 class Pages(str, Enum):
     home = 'HomePage'
@@ -55,6 +59,7 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwds)
         return cls._instances[cls]
 
+
 class PageManager(metaclass=Singleton):
     
     def __init__(self):
@@ -89,7 +94,7 @@ class PageManager(metaclass=Singleton):
                 self.__pages[name] = page
                 return page
             except Exception as e:
-                print(f"Page builder EXEPTION: {e}")
+                logger.exception(f"Page builder EXEPTION: {e}")
         else:
             raise ValueError(f'Not founded builder for the name: {name}')
 
@@ -102,22 +107,9 @@ class PageManager(metaclass=Singleton):
             self.__pages[name].destroy()
         self.__pages[name] = page
         self.show_page(name)
-        #self.__pages[name].pack_configure(fill='both', expand=True)
 
     def set_bind(self, page_name_to_bind: str, frame):
         self.__binds[page_name_to_bind] = frame
-
-    """ def redraw_page(self, name: str):
-        self.__pages[name].pack_forget()
-        self.__pages[name] = self.page_builder(name) """
-
-    """ def _redraw(self):
-        if len(self.__marked_for_redraw) == 0:
-            return
-        for name in self.__marked_for_redraw:
-            self.__pages[name].pack_forget()
-            self.__pages[name] = self.page_builder(name)
-        self.__marked_for_redraw = [] """
 
     def _redraw_page(self, name: str):
         self.__pages[name].pack_forget()
@@ -207,7 +199,6 @@ class PageManager(metaclass=Singleton):
             return self.__binds[name]
             
     def show_page(self, name: str, redraw_frame: bool = False):
-        #self._show_page(name, redraw_frame)
         self._show_page_without_back_redraw(name, redraw_frame)
 
     def create_and_go(self, name: str, page: Page, redraw_frame: bool = True):
@@ -232,8 +223,3 @@ class PageManager(metaclass=Singleton):
         for name in pages:
             page = self.page_builder(name)
             self.add_page(name, page)
-
-__page_manager = PageManager()
-
-def get_page_manager():
-    return __page_manager

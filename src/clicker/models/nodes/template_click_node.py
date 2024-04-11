@@ -2,10 +2,14 @@ from typing import Tuple, Union
 import cv2
 from PIL import Image, ImageGrab
 import numpy as np
+
 from src.clicker.core.action_factory import Action, ActionFactory
 from src.clicker.core.actions.click_action import ClickAction
 from src.clicker.models.nodes.base_node import BaseScriptNode
+from src.utils.file_helper.file_helper import load_img
+from src.utils.logger.logger import AppLogger
 
+logger = AppLogger.get_logger(__name__)
 
 class TemplateClickNode(BaseScriptNode):
     def __init__(self, img_source: str = None, button: Action = 'left', move: bool = False, count: int = 1, uuid: str = None, **kw):
@@ -19,7 +23,6 @@ class TemplateClickNode(BaseScriptNode):
         click_action: ClickAction = action_factory.get_action(action=self.action)
         (x, y) = self.get_coordinates()
         if x:
-            print(f'MOVE {self.move}')
             click_action.execute(x=x, y=y, button=self.button, move=self.move, count=self.count)
 
     def get_coordinates(self) -> Union[Tuple[int, int], None]:
@@ -28,7 +31,8 @@ class TemplateClickNode(BaseScriptNode):
         return self._match_template_in_screenshot(transformed_template)
 
     def _load_data(self):
-        template = cv2.imread(self.img_source, cv2.IMREAD_COLOR)
+        template = np.array(load_img(self.img_source)) # work on windows
+        #template = cv2.imread(relative_path, cv2.IMREAD_COLOR) # work on linux
         return self._rgba_to_rgb(template)
     
     def _rgba_to_rgb(self, template):
@@ -55,4 +59,4 @@ class TemplateClickNode(BaseScriptNode):
             #screenshot.save(fname)
             return screenshot
         except Exception as e:
-            print('Cant create screenshot ' + str(e))
+            logger.exception('Cant create screenshot ' + str(e))

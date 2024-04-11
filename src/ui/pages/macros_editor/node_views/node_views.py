@@ -1,18 +1,10 @@
 from pathlib import Path
 from typing import Any
-from customtkinter import CTkFrame, CTkLabel, CTkEntry, CTkComboBox, CTkCheckBox, CTkToplevel
+from customtkinter import CTkFrame, CTkLabel, CTkEntry, CTkComboBox, CTkCheckBox
 
 from src.clicker.models.nodes.template_click_node import TemplateClickNode
-from src.clicker.models.nodes.base_node import BaseScriptNode
 from src.clicker.models.nodes.click_node import ClickNode
-from src.ui.widgets.alert import Alert
-from src.ui.pages.macros_editor.node_view_manager import NodeViewManager
 from src.ui.pages.macros_editor.node_views.node_view import NodeView
-from src.ui.pages.macros_editor.node_views.widgets.media_view import MediaView
-from src.ui.pages.macros_editor.node_views.widgets.node_view_manipulator import NodeViewManipulator
-from src.utils.file_helper.file_helper import save_img
-
-
 
 
 class ClickNodeView(NodeView):
@@ -22,7 +14,6 @@ class ClickNodeView(NodeView):
         self.create_content().pack_configure(fill='both', expand=True)
 
     def create_content(self):
-        #self.frame = CTkFrame(self, fg_color='transparent', bg_color='transparent')
 
         data_view = CTkFrame(self.frame, fg_color="transparent")
 
@@ -67,7 +58,6 @@ class ClickNodeView(NodeView):
 
         if self.node:
             self.fill_from_node(self.node)
-
         return self.frame
     
     def fill_from_node(self, node: ClickNode):
@@ -76,7 +66,6 @@ class ClickNodeView(NodeView):
         self.y_input.insert(0, str(node.y))
         self.button_type.set(node.button)
         self.count_of_click.insert(0, str(node.count))
-        #self.use_move.toggle(int(node.move))
         if node.move == True:
             self.use_move.select()
         else:
@@ -99,10 +88,7 @@ class TemplateClickNodeView(NodeView):
         self.create_content().pack_configure(fill='both', expand=True)
 
     def create_content(self):
-        #self.frame = CTkFrame(self, fg_color='transparent', bg_color='transparent')
-
-        #self.frame.grid_columnconfigure([1], weight=1)
-
+        
         data_view = CTkFrame(self.frame, fg_color="transparent")
 
         row_1 = CTkFrame(data_view, fg_color="transparent")
@@ -132,29 +118,18 @@ class TemplateClickNodeView(NodeView):
 
         if self.node:
             self.fill_from_node(self.node)
-
         return self.frame
-    
-    """ def save_callback(self, img):
-        save_img(img, path=self.manager) """
-    
+
     def fill_from_node(self, node: ClickNode):
         self.node = node
         self.button_type.set(node.button)
         self.count_of_click.insert(0, str(node.count))
-        #self.use_move.toggle(int(node.move))
         if node.move == True:
             self.use_move.select()
         else:
             self.use_move.deselect()
 
-    """ def set_path_to_img(self):
-        path_to_img
-        if self.path_to_img != path:
-            self.path_to_img = path """
-
     def update_node(self):
-        #self.node.img_source = self.
         self.node.button = self.button_type.get()
         self.node.count = int(self.count_of_click.get())
         self.node.move = bool(self.use_move.get())

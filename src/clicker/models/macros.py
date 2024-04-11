@@ -38,7 +38,6 @@ class Macros:
 
     @property
     def script(self):
-        #if self.__macros_path:
         return self.__script
     
     @property
@@ -83,9 +82,6 @@ class Macros:
         Також він зберігає метадані у полі `self.__metadata` які потім груперуються в файлі `metadata.json`
         """
         date_today = date.today()
-        """ folder_name = f"{date_today} {self.__name}"
-        macros_path = self.__workdir.joinpath(folder_name) """
-        #self.__macros_path = macros_path
         self.folder_name = self.get_folder_name()
         self.__macros_path = self.get_macros_path()
         create_destination_dir(self.__macros_path.joinpath('data/'))

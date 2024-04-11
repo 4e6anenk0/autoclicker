@@ -1,5 +1,4 @@
 from src.clicker.core.actions.click_action import ClickAction
-from src.clicker.core.actions.base_action import BaseAction
 from src.clicker.core.action_factory import Action, ActionFactory
 from src.clicker.models.nodes.base_node import BaseScriptNode
 
@@ -13,9 +12,6 @@ class ClickNode(BaseScriptNode):
         self.move = move
         self.count = count
         
-
     def apply(self, action_factory: ActionFactory):
-        """ click_action = action_factory.get_action(action=self.action)
-        click_action.execute(vars(self)) # передати властивості вузла у вигляді словаря на обробку action """
         click_action: ClickAction = action_factory.get_action(action=self.action)
         click_action.execute(x=self.x, y=self.y, button=self.button, move=self.move, count=self.count)

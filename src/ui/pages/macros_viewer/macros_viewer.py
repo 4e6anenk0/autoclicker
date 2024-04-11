@@ -6,7 +6,7 @@ import time
 from src.clicker.models.macros import Macros
 from src.clicker.models.macros_manager import MacrosManager
 from src.settings.settings import Settings, get_settings
-from src.ui.pages.page import Page, PageManager, Pages, get_page_manager
+from src.ui.pages.page import Page, PageManager, Pages
 from src.ui.pages.macros_editor.macros_editor import MacrosEditor
 from src.utils.file_helper.file_helper import load_img
 

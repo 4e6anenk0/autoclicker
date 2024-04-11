@@ -1,5 +1,4 @@
 from copy import copy
-from datetime import date
 import io
 from typing import Literal, NewType, Dict, Tuple, Union
 import json as _json
@@ -67,7 +66,6 @@ class Script:
         Метод який запускає скрипт
         """
         for node in self.__nodal_view:
-            print(type(node))
             node.apply(action_factory=self.action_factory)
 
     def insert_node(self, node: BaseScriptNode, index: Union[NodePosition, int], order: Literal['before', 'after']):
@@ -131,8 +129,8 @@ class Script:
         with open(file=path_to_file) as file: 
             json_obj = _json.load(file)
         for node in json_obj["script"]:
-            img_source = node.get('img_source', None)
-            node_uuid = node.get('uuid')
+            #img_source = node.get('img_source', None)
+            #node_uuid = node.get('uuid')
             #self.add_node(NodeFactory.create_node(node['name'], img_source if img_source else None, uuid=node_uuid))
             self.add_node(NodeFactory.copy_node(node, node['name']))
 
@@ -221,7 +219,6 @@ class Script:
         for node in self.__nodal_view:
             data = node.get_img_source()
             if data:
-                print(f"DATA in SCRIPT: {data}")
                 data_collect[str(node.uuid)] = data
         return data_collect
     

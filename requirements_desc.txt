@@ -1,4 +1,5 @@
 opencv-python
+Pillow
 pynput
 numpy
 customtkinter
