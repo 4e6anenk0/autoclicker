@@ -71,17 +71,23 @@ class ClickNodeView(NodeView):
         return self.frame
     
     def fill_from_node(self, node: ClickNode):
+        self.node = node
         self.x_input.insert(0, str(node.x))
         self.y_input.insert(0, str(node.y))
         self.button_type.set(node.button)
         self.count_of_click.insert(0, str(node.count))
-        self.use_move.toggle(int(node.move))
+        #self.use_move.toggle(int(node.move))
+        if node.move == True:
+            self.use_move.select()
+        else:
+            self.use_move.deselect()
 
     def update_node(self):
         self.node.x = int(self.x_input.get())
         self.node.y = int(self.y_input.get())
         self.node.button = self.button_type.get()
         self.node.count = int(self.count_of_click.get())
+        print(bool(self.use_move.get()))
         self.node.move = bool(self.use_move.get())
 
 
@@ -133,9 +139,14 @@ class TemplateClickNodeView(NodeView):
         save_img(img, path=self.manager) """
     
     def fill_from_node(self, node: ClickNode):
+        self.node = node
         self.button_type.set(node.button)
         self.count_of_click.insert(0, str(node.count))
-        self.use_move.toggle(int(node.move))
+        #self.use_move.toggle(int(node.move))
+        if node.move == True:
+            self.use_move.select()
+        else:
+            self.use_move.deselect()
 
     """ def set_path_to_img(self):
         path_to_img

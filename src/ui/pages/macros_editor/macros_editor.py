@@ -65,8 +65,10 @@ class MacrosEditor(Page):
         if self.macros: # Заповнення scrollable_content або існуючими вузлами в макросі, або повідомленням їх відсутності
             for node in self.macros.get_nodes():
                 node_view = self.node_view_builder.get_view(self.scrollable_content, node)
-
-                self.editing_node_views.append(node_view) ## можливий баг
+                print(f"Fill data: {node}")
+                #self.editing_node_views.append(node_view) ## можливий баг
+                self.node_manager.editing_node_views.append(node_view)
+                self.node_manager.editing_nodes[node.uuid] = node
                 node_view.pack_configure(padx=(0, 10), pady=10) 
         else:
             #self.no_nodes_info = 
@@ -96,16 +98,18 @@ class MacrosEditor(Page):
             self.node_manager.set_path_to_data(str(self.macros.get_macros_path().joinpath('data/')))
             
             self.node_manager.synchronize_data_from_view()
-            self.node_manager.editing_nodes_to_script()
+            #self.node_manager.editing_nodes_to_script()
             self.macros.add_script(self.script)
             self.update_macros_data()
             self.macros_manager.add_macros(self.macros)
+            #self.macros_manager.update_global_metadata() # new
             self.macros_manager.save_all_macroses()
             
             self.node_manager.save_images()
             #self.node_manager.save_images(str(self.macros.macros_path.joinpath('data/')))
         
         self.clear_all()
+        self.macros_manager.load_global_metadata()
 
     def update_macros_data(self):
         self.macros.set_name(self.title.get())
@@ -135,7 +139,8 @@ class MacrosEditor(Page):
 
     def update_node_views(self):
         for node in self.script.get_nodes():
-            if node.uuid not in self.node_manager.editing_nodes:
+            if node.uuid not in self.node_manager.editing_nodes.keys():
+                print(f'Added node: {node.name},{node.uuid}')
                 self.node_manager.editing_nodes[node.uuid] = node
 
                 node_view = self.create_node_view(node)

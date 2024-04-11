@@ -1,3 +1,4 @@
+import time
 from app import App
 from pynput.mouse import Button, Controller, Listener as MsListener
 from pynput.keyboard import Key, Listener, Controller as KeyCon
@@ -113,24 +114,21 @@ if __name__ == "__main__":
 
     
     
-    """ mouse = Controller()
+    """     mouse = Controller()
     keyboard = KeyCon()
     
-    listener = MsListener(on_click=on_click)
-    
-    listener.start()
-    listener.join() """
+    #listener = MsListener(on_click=on_click)
 
-    """ # Считывание положения указателя
+    # Считывание положения указателя
     print(f'Текущее положение указателя: {mouse.position}')
 
     # Установка положения указателя
     #mouse.position = (10, 20)
     #print(f'Указатель перемещен в позицию: {mouse.position}')
-
+    time.sleep(1)
     # Перемещение указателя относительно текущего положения
-    new_pos = (mouse.position[0] + 10, mouse.position[1] - 10)
-    print(f'New position is: {new_pos}')
-    mouse.move(new_pos[0], new_pos[1])
+    (x, y) = (mouse.position[0] + 100, mouse.position[1] - 100)
+    
+    mouse.move(x, y)
     
     mouse.click(button=Button.right) """

@@ -3,7 +3,6 @@ from datetime import date
 import io
 from typing import Literal, NewType, Dict, Tuple, Union
 import json as _json
-from uuid import UUID
 
 from src.clicker.core.action_factory import ActionFactory
 from src.clicker.models.nodes import BaseScriptNode, NodeFactory
@@ -68,6 +67,7 @@ class Script:
         Метод який запускає скрипт
         """
         for node in self.__nodal_view:
+            print(type(node))
             node.apply(action_factory=self.action_factory)
 
     def insert_node(self, node: BaseScriptNode, index: Union[NodePosition, int], order: Literal['before', 'after']):
@@ -132,7 +132,9 @@ class Script:
             json_obj = _json.load(file)
         for node in json_obj["script"]:
             img_source = node.get('img_source', None)
-            self.add_node(NodeFactory.create_node(node['name'], img_source if img_source else None))
+            node_uuid = node.get('uuid')
+            #self.add_node(NodeFactory.create_node(node['name'], img_source if img_source else None, uuid=node_uuid))
+            self.add_node(NodeFactory.copy_node(node, node['name']))
 
     def get_node_by_uuid(self, uuid: str) -> Tuple[BaseScriptNode, NodePosition]:
         """

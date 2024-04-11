@@ -66,7 +66,10 @@ class MacrosManager:
         """
         try:
             if localy and self.__macroses[uuid]:
-                shutil.rmtree(self.__macroses[uuid].metadata.macros_dir_path)
+                if self.__metadata[uuid]:
+                    shutil.rmtree(self.__metadata[uuid].macros_dir_path)
+                else:
+                    logger.warning(f"__macroses[uuid].metadata is None: {e}")
             self.__macroses.pop(uuid)
             self.__metadata.pop(uuid)
             return True
@@ -118,6 +121,7 @@ class MacrosManager:
                                 script=script, 
                                 uuid=UUID(metadata['uuid']))
                 self.__macroses[metadata['uuid']] = macros
+            print(macros)
             return macros, True
         except Exception as e:
             logger.exception(f'{e}')
@@ -182,8 +186,8 @@ class MacrosManager:
             if self.__is_loaded_metadata:
                 for uuid, metadata in self.__metadata.items():
                     script = Script()
-                    script.load_script_from_file(metadata['script_path'])
-                    self.__macroses[uuid] = Macros(workdir=self.__workdir, name=metadata['name'], script=script, uuid=UUID(uuid))
+                    script.load_script_from_file(metadata.script_path)
+                    self.__macroses[uuid] = Macros(workdir=self.__workdir, name=metadata.name, script=script, uuid=UUID(uuid))
             return True
         except Exception as e:
             logger.exception(f'{e}')
@@ -204,15 +208,17 @@ class MacrosManager:
     def load_macroses(self, batch_size: int) -> Union[Generator[list[Macros], Any, None]]:
         metadatas: list[MacrosMetadata] = list(self.__metadata.values())
         
-        batch = []
+        
         for i in range(0, len(metadatas), batch_size):
             print(f"Start index: {i}, End index: {i + batch_size - 1}")
-            
+            batch = []
             for metadata in metadatas[i:i + batch_size]:
-                print(metadata['name'])
-                batch.append(self.load_macros_by_metadata_file(metadata['metadata_path'])[0])
+                data = self.load_macros_by_metadata_file(metadata.metadata_path)[0]
+                self.__macroses[data.uuid] = data
+                if data:
+                    batch.append(data)
             yield batch
-        batch = []
+        #batch = []
     
     def get_macroses_by_filter():
         pass
@@ -254,12 +260,14 @@ class MacrosManager:
         try:
             data = {}
 
-            if len(self.__metadata.keys()) > 0:
+            """ if len(self.__metadata.keys()) > 0:
                 for uuid, metadata in self.__metadata.items():
-                    data[uuid] = metadata.to_dict()
+                    if metadata:
+                        data[uuid] = metadata.to_dict() """
 
             for uuid, macros in self.__macroses.items():
-                data[uuid] = macros.metadata.to_dict()
+                if macros.metadata:
+                    data[uuid] = macros.metadata.to_dict()
 
             json_to_save = json.dumps(data, indent=4)
             
@@ -275,7 +283,8 @@ class MacrosManager:
         Оновлює значення метаданих менеджеру про методані макросів, які завантажені в нього
         """
         for macros in self.__macroses.values():
-            self.__metadata[macros.uuid] = macros.metadata
+            if macros.metadata:
+                self.__metadata[macros.uuid] = macros.metadata
     
     def load_global_metadata(self):
         """

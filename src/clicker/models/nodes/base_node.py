@@ -1,12 +1,12 @@
 from typing import Dict, Union
-import uuid
+import uuid as setid
 
 from src.clicker.core.action_factory import Action, ActionFactory
 
 
 class BaseScriptNode:
-    def __init__(self, action: Action, **kw):
-        self.uuid = str(uuid.uuid1())
+    def __init__(self, action: Action, uuid: str = None, **kw):
+        self.uuid = str(setid.uuid1()) if not uuid else uuid
         self.name = self.__class__.__name__
         self.action = action
 
@@ -24,7 +24,7 @@ class BaseScriptNode:
         return hash(self.uuid)
     
     def __str__(self) -> str:
-       return f"Node name: [{self.name}], action: [{self.action}], id: [{self.uuid}]. \n"
+       return f"Node name: [{self.name}], action: [{self.action}], id: [{self.uuid}]. Data: \n {vars(self)} \n"
 
     def get_img_source(self) -> Union[str, None]:
         value = getattr(self, 'img_source', None)

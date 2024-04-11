@@ -25,8 +25,9 @@ class MainFrame(Page):
         self.master = master
 
         self.macros_manager = MacrosManager(workdir=get_settings().macroses_path, path_to_metadata=get_settings().macroses_path.joinpath('metadata.json'))
-        print('Load global metadata')
+        
         self.macros_manager.load_global_metadata()
+        
         #self.macros_manager.load_all_macroses()
 
         self.page_manager = PageManager()

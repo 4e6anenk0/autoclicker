@@ -5,8 +5,8 @@ from src.clicker.models.nodes.base_node import BaseScriptNode
 
 
 class ClickNode(BaseScriptNode):
-    def __init__(self, x: int = 0, y: int = 0, button: Action = 'left', move: bool = False, count: int = 1, **kw):
-        super().__init__(action='click', **kw)
+    def __init__(self, x: int = 0, y: int = 0, button: Action = 'left', move: bool = False, count: int = 1, uuid: str = None, **kw):
+        super().__init__(action='click', uuid=uuid, **kw)
         self.x = x
         self.y = y
         self.button = button
