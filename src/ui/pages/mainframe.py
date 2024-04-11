@@ -13,31 +13,34 @@ from src.ui.pages.macros_viewer.macros_viewer import MacrosViewer
 
 
 class AppProtocol(Protocol):
-    def update():
+    def update_all():
         pass
 
 class MainFrame(Page):
     
-    def __init__(self, master: AppProtocol, settings: Settings, **kwargs):
+    def __init__(self, master: AppProtocol, settings: Settings, page_manager: PageManager, macros_manager: MacrosManager, **kwargs):
         super().__init__(master, settings, **kwargs)
-
-        self.master = master
-
-        self.macros_manager = MacrosManager(workdir=get_settings().macroses_path, path_to_metadata=get_settings().macroses_path.joinpath('metadata.json'))
-        
-        self.macros_manager.load_global_metadata()
-
-        self.page_manager = PageManager()
+        self.page_manager = page_manager
+        self.macros_manager = macros_manager
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
         self.page_frame = CTkFrame(self)
 
-        self.create_sidebar().grid_configure(row=0, column=0, sticky='wns')
+        self.sidebar = self.create_sidebar().grid_configure(row=0, column=0, sticky='wns')
         self.page_frame.grid_configure(row=0, column=1, sticky='wsne')
         
         self.init_pages()
+
+    def update_frame(self):
+        new_sidebar = self.create_sidebar()
+        self.sidebar.grid_forget()
+        self.sidebar = new_sidebar
+        self.sidebar.grid_configure(row=0, column=0, sticky='wns')
+        
+        self.page_manager.redraw_pages()
+        self.page_manager.show_default_page()
 
     def register_page_builders(self):
         self.page_manager.register_pages(
@@ -45,7 +48,7 @@ class MainFrame(Page):
                 Pages.macros_editor : lambda: MacrosEditor(self.page_frame, settings=self.settings, macros_manager=self.macros_manager),
                 Pages.macros_viewer : lambda: MacrosViewer(self.page_frame, settings=self.settings, macros_manager=self.macros_manager),
                 #Pages.home          : lambda: HomePage(self.page_frame, settings=self.settings),
-                Pages.settings      : lambda: SettingsPage(self.page_frame, settings=self.settings)
+                Pages.settings      : lambda: SettingsPage(self.update_frame, self.page_frame, settings=self.settings)
             }
         )
 

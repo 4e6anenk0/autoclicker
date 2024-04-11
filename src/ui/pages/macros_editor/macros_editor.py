@@ -27,7 +27,7 @@ class MacrosEditor(Page):
         self.fill_data_from_macros_if_exist()
 
     
-    def create_content(self) -> CTkFrame:
+    def create_content(self) -> Page:
         self.frame = CTkFrame(self)
         
         self.header = CTkFrame(self)
@@ -158,7 +158,7 @@ class HeaderPanel(CTkFrame):
         add_node_button = CTkButton(self.frame, text=get_settings().get_ui_text(Texts.macros_editor_add_node_button), command=self.add_node)
         add_node_button.grid_configure(row=0, column=1, padx=10, pady=10)
 
-        self.clear_all_button = CTkButton(self.frame, text='Очистити', command=self.clear_all, fg_color='red')
+        self.clear_all_button = CTkButton(self.frame, text=get_settings().get_ui_text(Texts.macros_editor_clean_btn), command=self.clear_all, fg_color='red')
 
         return self.frame
     

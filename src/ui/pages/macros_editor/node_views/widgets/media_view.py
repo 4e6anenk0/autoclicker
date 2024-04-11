@@ -1,6 +1,7 @@
 from typing import Any
 from customtkinter import CTkFrame, CTkImage, CTkLabel, CTkButton, CTkFont
 
+from src.settings.settings import Texts, get_settings
 from src.utils.file_helper.file_helper import load_img, resize_img
 from src.ui.widgets.screenshot_action import ScreenshotAction
 
@@ -29,7 +30,7 @@ class MediaView(CTkFrame):
                 self.image_label = ScreenshotInput(self.frame, height=self.height, width=self.height, path_to_img=self.path_to_img, node_view=self.node_view)
                 self.image_label.grid_configure(row=0, column=0, padx=5, pady=5, sticky='nws')
             else:
-                fill_label = CTkLabel(self.frame, text="No media", height=self.height, width=self.height)
+                fill_label = CTkLabel(self.frame, text=get_settings().get_ui_text(Texts.media_view_no_media), height=self.height, width=self.height)
             
                 fill_label.grid_configure(row=0, column=0, padx=5, pady=5, sticky='nws')
 

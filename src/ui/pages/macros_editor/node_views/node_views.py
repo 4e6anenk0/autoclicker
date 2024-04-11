@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 from customtkinter import CTkFrame, CTkLabel, CTkEntry, CTkComboBox, CTkCheckBox
 
+from src.settings.settings import Texts, get_settings
 from src.clicker.models.nodes.template_click_node import TemplateClickNode
 from src.clicker.models.nodes.click_node import ClickNode
 from src.ui.pages.macros_editor.node_views.node_view import NodeView
@@ -37,18 +38,18 @@ class ClickNodeView(NodeView):
         row_3 = CTkFrame(data_view, fg_color="transparent")
         row_3.grid_columnconfigure([1], weight=1, minsize=60)
         row_3.grid_columnconfigure([3], weight=1, minsize=40)
-        button_type_label = CTkLabel(row_3, text='Клавіша миші:')
+        button_type_label = CTkLabel(row_3, text=get_settings().get_ui_text(Texts.node_views_type_of_button))
         button_type_label.grid_configure(row=0, column=0, sticky='w', padx=(0, 10))
         self.button_type = CTkComboBox(row_3, values=['left', 'right'])
         self.button_type.grid_configure(row=0, column=1, sticky='w')
-        count_of_click_label = CTkLabel(row_3, text='Кліків:')
+        count_of_click_label = CTkLabel(row_3, text=get_settings().get_ui_text(Texts.node_views_number_of_click))
         count_of_click_label.grid_configure(row=0, column=2, sticky='w', padx=(10, 10))
         self.count_of_click = CTkEntry(row_3, width=50)
         self.count_of_click.grid_configure(row=0, column=3, sticky='w', padx=(0, 10))
         row_3.pack_configure(fill='x', expand=False, padx=5, pady=5)
 
         row_4 = CTkFrame(data_view, fg_color="transparent")
-        use_move_label = CTkLabel(row_4, text='Показувати переміщення:')
+        use_move_label = CTkLabel(row_4, text=get_settings().get_ui_text(Texts.node_views_show_move))
         use_move_label.grid_configure(row=0, column=0, sticky='w')
         self.use_move = CTkCheckBox(row_4, text='')
         self.use_move.grid_configure(row=0, column=1, padx=(10, 0))
@@ -97,18 +98,18 @@ class TemplateClickNodeView(NodeView):
         row_1.pack_configure(fill='x', expand=False, padx=5, pady=(10, 5))
 
         row_2 = CTkFrame(data_view, fg_color="transparent")
-        button_type_label = CTkLabel(row_2, text='Клавіша миші:')
+        button_type_label = CTkLabel(row_2, text=get_settings().get_ui_text(Texts.node_views_type_of_button))
         button_type_label.grid_configure(row=0, column=0, sticky='w', padx=(0, 10))
         self.button_type = CTkComboBox(row_2, values=['left', 'right'])
         self.button_type.grid_configure(row=0, column=1, sticky='w')
-        count_of_click_label = CTkLabel(row_2, text='Кліків:')
+        count_of_click_label = CTkLabel(row_2, text=get_settings().get_ui_text(Texts.node_views_number_of_click))
         count_of_click_label.grid_configure(row=0, column=2, sticky='w', padx=(10, 10))
         self.count_of_click = CTkEntry(row_2, width=50)
         self.count_of_click.grid_configure(row=0, column=3, sticky='w', padx=(0, 10))
         row_2.pack_configure(fill='x', expand=False, padx=5, pady=5)
 
         row_3 = CTkFrame(data_view, fg_color="transparent")
-        use_move_label = CTkLabel(row_3, text='Показувати переміщення:')
+        use_move_label = CTkLabel(row_3, text=get_settings().get_ui_text(Texts.node_views_show_move))
         use_move_label.grid_configure(row=0, column=0, sticky='w')
         self.use_move = CTkCheckBox(row_3, text='')
         self.use_move.grid_configure(row=0, column=1, padx=(10, 0))
@@ -134,7 +135,7 @@ class TemplateClickNodeView(NodeView):
         self.node.count = int(self.count_of_click.get())
         self.node.move = bool(self.use_move.get())
         
-        if self.manager.path_to_data:
+        if self.manager.path_to_data and self.img:
             path_to_img = str(Path(self.manager.path_to_data).joinpath(f"{self.node_id}.png"))
             if self.node.img_source != path_to_img:
                 self.node.img_source = path_to_img

@@ -46,6 +46,26 @@ class Texts(Enum):
     macros_editor_add_node_button = "Add node"
     macros_editor_name_entry_placeholder = "Node name..."
     macros_editor_desc_entry_label = "Description:"
+    
+    macros_editor_clean_btn = "Clean"
+
+    macros_viewer_choose_btn = "Choose"
+    macros_viewer_decline_btn = "Decline"
+    macros_viewer_remove_btn = "Remove"
+    macros_viewer_label_text = "Name: "
+    macros_viewer_run_btn = "Run"
+    macros_viewer_load_more_btn = "Load more..."
+    macros_viewer_loaded_label = "End..."
+
+    node_views_type_of_button = "Mouse key type:"
+    node_views_number_of_click = "Clicks:"
+    node_views_show_move = "Show movement:"
+
+    remove_alert_confirm = "Yes"
+    remove_alert_discard = "No"
+    remove_alert_msg = "Do you want to delete this node?"
+
+    media_view_no_media = "No media"
 
 class Settings:
     def __init__(self, debug_mode: bool = False):
@@ -99,6 +119,21 @@ class Settings:
                                                                 Texts.macros_editor_save_macros_button.name : Texts.macros_editor_save_macros_button.value,
                                                                 Texts.macros_editor_title_placeholder.name : Texts.macros_editor_title_placeholder.value,
                                                                 Texts.macros_editor_type_node_menu_placeholder.name : Texts.macros_editor_type_node_menu_placeholder.value,
+                                                                Texts.macros_editor_clean_btn.name : Texts.macros_editor_clean_btn.value,
+                                                                Texts.macros_viewer_choose_btn.name : Texts.macros_viewer_choose_btn.value,
+                                                                Texts.macros_viewer_decline_btn.name : Texts.macros_viewer_decline_btn.value,
+                                                                Texts.macros_viewer_remove_btn.name : Texts.macros_viewer_remove_btn.value,
+                                                                Texts.macros_viewer_label_text.name : Texts.macros_viewer_label_text.value,
+                                                                Texts.macros_viewer_run_btn.name : Texts.macros_viewer_run_btn.value,
+                                                                Texts.macros_viewer_load_more_btn.name : Texts.macros_viewer_load_more_btn.value,
+                                                                Texts.macros_viewer_loaded_label.name : Texts.macros_viewer_loaded_label.value,
+                                                                Texts.node_views_number_of_click.name : Texts.node_views_number_of_click.value,
+                                                                Texts.node_views_show_move.name : Texts.node_views_show_move.value,
+                                                                Texts.node_views_type_of_button.name : Texts.node_views_type_of_button.value,
+                                                                Texts.remove_alert_confirm.name : Texts.remove_alert_confirm.value,
+                                                                Texts.remove_alert_discard.name : Texts.remove_alert_discard.value,
+                                                                Texts.remove_alert_msg.name : Texts.remove_alert_msg.value,
+                                                                Texts.media_view_no_media.name : Texts.media_view_no_media.value,
                                                                 }),
 
         }

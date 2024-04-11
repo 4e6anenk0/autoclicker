@@ -1,6 +1,5 @@
 from enum import Enum
-from threading import Lock
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, Protocol, Union
 from customtkinter import CTkFrame, CTkScrollableFrame
 
 from src.settings.settings import Settings
@@ -18,38 +17,19 @@ class Pages(str, Enum):
     def __str__(self) -> str:
         return self.value
 
-
 class Page(CTkFrame):
     def __init__(self, master: Any, settings: Settings, **kwargs):
         super().__init__(master, **kwargs)
         self.name = __class__.__name__
         self.__settings = settings
         self.frame: CTkFrame = None
-        self.__master = master
 
     @property
     def settings(self):
         return self.__settings
     
     def update_all(self):
-        self.__master.update_all()
-    
-
-class ScrollablePage(CTkScrollableFrame):
-    def __init__(self, master: Any, settings: Settings, **kwargs):
-        super().__init__(master, **kwargs)
-        self.name = __class__.__name__
-        self.__settings = settings
-        self.frame: CTkScrollableFrame = None
-        self.__master = master
-
-    @property
-    def settings(self):
-        return self.__settings
-    
-    def update_all(self):
-        self.__master.update_all()
-
+        self.master.update_all()
 
 class Singleton(type):
     _instances = {}
@@ -63,9 +43,9 @@ class Singleton(type):
 class PageManager(metaclass=Singleton):
     
     def __init__(self):
-        self.__pages: Dict[str, Union[Page, ScrollablePage]] = {}
+        self.__pages: Dict[str, Union[Page]] = {}
         self.__page_builders: Dict[str, Callable] = {}
-        self.__binds: Dict[str, CTkFrame] = {}
+        self.__binds: Dict[str, Page] = {}
         self.__default_page: str = None
         self.__current_page: str = None
         self.__marked_for_redraw: list[str] = []
@@ -111,20 +91,25 @@ class PageManager(metaclass=Singleton):
     def set_bind(self, page_name_to_bind: str, frame):
         self.__binds[page_name_to_bind] = frame
 
-    def _redraw_page(self, name: str):
+    def redraw_page(self, name: str):
         self.__pages[name].pack_forget()
         self.__pages[name] = self.page_builder(name)
+
+    def redraw_pages(self):
+        for page in self.__pages:
+            self.__pages[page].pack_forget()
+            self.__pages[page] = self.page_builder(page)
 
     def _backgroud_redraw(self):
         if len(self.__marked_for_redraw) == 0:
             return
         for name in self.__marked_for_redraw:
-            self._redraw_page(name)
+            self.redraw_page(name)
         self.__marked_for_redraw = []
 
     def _on_opening_redraw(self, name: str):
         if name in self.__pages.keys():
-            self._redraw_page(name)
+            self.redraw_page(name)
         else:
             self.__pages[name] = self.page_builder(name)
 

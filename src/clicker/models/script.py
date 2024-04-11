@@ -66,6 +66,7 @@ class Script:
         Метод який запускає скрипт
         """
         for node in self.__nodal_view:
+            print(node)
             node.apply(action_factory=self.action_factory)
 
     def insert_node(self, node: BaseScriptNode, index: Union[NodePosition, int], order: Literal['before', 'after']):

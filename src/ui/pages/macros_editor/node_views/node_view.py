@@ -2,6 +2,7 @@ from typing import Any
 from customtkinter import CTkFrame, CTkToplevel
 from PIL.Image import Image
 
+from src.settings.settings import Texts, get_settings
 from src.clicker.models.nodes.base_node import BaseScriptNode
 from src.ui.widgets.alert import Alert
 from src.ui.pages.macros_editor.node_views.widgets.media_view import MediaView
@@ -33,7 +34,11 @@ class NodeView(CTkFrame):
     
     def show_remove_alert(self):
         if self.alert is None or not self.alert.winfo_exists():
-            self.alert = Alert(callback_confirm=self.remove_node, callback_discard=self.remove_alert, confirm_btn_text='Так', discard_btn_text='Ні', msg='Чи хочете ви видалити вузол?')
+            self.alert = Alert(callback_confirm=self.remove_node, 
+                               callback_discard=self.remove_alert, 
+                               confirm_btn_text=get_settings().get_ui_text(Texts.remove_alert_confirm), 
+                               discard_btn_text=get_settings().get_ui_text(Texts.remove_alert_discard), 
+                               msg=get_settings().get_ui_text(Texts.remove_alert_msg))
         else:
             self.alert.focus()
     

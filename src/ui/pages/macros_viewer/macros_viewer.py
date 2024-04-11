@@ -5,7 +5,7 @@ import time
 
 from src.clicker.models.macros import Macros
 from src.clicker.models.macros_manager import MacrosManager
-from src.settings.settings import Settings, get_settings
+from src.settings.settings import Settings, Texts, get_settings
 from src.ui.pages.page import Page, PageManager, Pages
 from src.ui.pages.macros_editor.macros_editor import MacrosEditor
 from src.utils.file_helper.file_helper import load_img
@@ -45,7 +45,7 @@ class MacrosViewer(Page):
         for view in self.macros_views:
             view.pack_forget()
 
-    def create_content(self) -> CTkFrame:
+    def create_content(self) -> Page:
         self.frame = CTkFrame(self)
 
         header = HeaderPanel(self.frame, manager=self.macros_manager, viewer=self)
@@ -54,7 +54,7 @@ class MacrosViewer(Page):
         self.scrollable_content = CTkScrollableFrame(self.frame)
         self.scrollable_content.pack(fill='both', expand=True)
 
-        self.no_nodes_info = CTkLabel(self.scrollable_content, text='Немає жодних макросів...', anchor='n')
+        self.no_nodes_info = CTkLabel(self.scrollable_content, text=get_settings().get_ui_text(Texts.macros_viewer_load_more_btn), anchor='n')
 
         # правильні прив'язки для роботи як в linux так і в windows
         # У Windows коліщатко миші прив’язується за допомогою <MouseWheel> методу, 
@@ -80,7 +80,7 @@ class PageNavigator(CTkFrame):
     def create_content(self):
         self.frame = CTkFrame(self)
 
-        self.load_more_button = CTkButton(self.frame, text='Завантажити ще', command=self.load_more_callback, height=50)
+        self.load_more_button = CTkButton(self.frame, text=get_settings().get_ui_text(Texts.macros_viewer_load_more_btn), command=self.load_more_callback, height=50)
         self.load_more_button.pack_configure(fill='x', expand=False)
 
         return self.frame
@@ -107,12 +107,15 @@ class MacrosView(CTkFrame):
         row = CTkFrame(self.frame, fg_color='transparent')
         row.grid_columnconfigure([1], weight=1)
 
-        
-
-        run_macros_button = CTkButton(row, image=run_ctk_img, text='Запуск', fg_color='transparent', anchor='w', command=self.run_script)
+        run_macros_button = CTkButton(row, 
+                                      image=run_ctk_img, 
+                                      text=get_settings().get_ui_text(Texts.macros_viewer_run_btn), 
+                                      fg_color='transparent', 
+                                      anchor='w', 
+                                      command=self.run_script)
         run_macros_button.grid_configure(row=0, column=0, sticky='wns')
         
-        text = f"Назва: {self.macros.name}"
+        text = f"{get_settings().get_ui_text(Texts.macros_viewer_label_text)}{self.macros.name}"
         label = CTkLabel(row, text=text, height=60, anchor='w')
         label.grid_configure(row=0, column=1, sticky='we', padx=10)
         label.bind("<Button-1>", self.on_click)
@@ -123,15 +126,16 @@ class MacrosView(CTkFrame):
     
     def run_script(self):
         time.sleep(2)
-        self.thread = threading.Thread(target=self.macros.run)
-        self.viewer.bind('<Escape>', lambda event: self.stop_script())
+        #self.viewer.bind('<Escape>', lambda event: self.stop_script())
+        self.thread = threading.Thread(target=self._run)
         self.thread.start()
-        
-        #self.macros.run()
 
-    def stop_script(self, event):
-        self.thread.join()
-        print("The script was forced to stop")
+    def _run(self):
+        self.macros.run()
+
+    # def stop_script(self, event):
+    #     self.thread.join()
+    #     print("The script was forced to stop")
     
     def show(self):
         self.pack_configure(fill='x', expand=False, pady=10, padx=10)
@@ -177,17 +181,17 @@ class HeaderPanel(CTkFrame):
         
         self.frame.grid_columnconfigure([1], weight=1)
 
-        add_macros_button = CTkButton(self.frame, text='Додати макрос', command=self.add_macros)
+        add_macros_button = CTkButton(self.frame, text=get_settings().get_ui_text(Texts.new_macros_btn), command=self.add_macros)
         add_macros_button.grid_configure(row=0, column=0, padx=10, pady=10, sticky='nws')
 
         right_frame = CTkFrame(self.frame, fg_color='transparent', bg_color='transparent')
 
-        self.remove_button = CTkButton(right_frame, text='Видалити', fg_color='red', command=self.remove)
+        self.remove_button = CTkButton(right_frame, text=get_settings().get_ui_text(Texts.macros_viewer_remove_btn), fg_color='red', command=self.remove)
 
         """ remove_all_button = CTkButton(right_frame, text='Видалити все', fg_color='red', command=self.remove_all)
         remove_all_button.pack_configure(side='right', pady=10, padx=(5, 5)) """
 
-        self.select_macroses_button = CTkButton(right_frame, text='Вибрати', command= self.switch_mode)
+        self.select_macroses_button = CTkButton(right_frame, text=get_settings().get_ui_text(Texts.macros_viewer_choose_btn), command= self.switch_mode)
         self.select_macroses_button.pack_configure(side='right', pady=10, padx=(10, 5))
 
         right_frame.grid_configure(row=0, column=1, sticky='nes')
@@ -212,12 +216,12 @@ class HeaderPanel(CTkFrame):
         if self.viewer.mode == 'view':
             self.viewer.mode = 'selectable'
             self.remove_button.pack_configure(side='right', pady=10, padx=(5, 10))
-            self.select_macroses_button.configure(text='Відхилити', fg_color='red')
+            self.select_macroses_button.configure(text=get_settings().get_ui_text(Texts.macros_viewer_decline_btn), fg_color='red')
         else:
             self.viewer.mode = 'view'
             self.remove_button.pack_forget()
             self.uncheck_all()
-            self.select_macroses_button.configure(text='Вибрати', fg_color='#1f6aa5')
+            self.select_macroses_button.configure(text=get_settings().get_ui_text(Texts.macros_viewer_choose_btn), fg_color='#1f6aa5')
 
     def add_macros(self):
         frame = self.page_manager.get_binding_from_page(Pages.macros_editor)

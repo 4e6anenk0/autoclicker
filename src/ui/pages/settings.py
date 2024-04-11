@@ -1,5 +1,4 @@
-import tkinter
-from typing import Any, Callable, Tuple, Union
+from typing import Any, Callable, Protocol, Union
 from customtkinter import CTkFrame, CTkLabel, CTkFont, CTkComboBox
 
 from src.settings.settings import Langs, Sections, Settings, Texts
@@ -7,10 +6,9 @@ from src.ui.pages.page import Page
 
 
 class SettingsPage(Page):
-    def __init__(self, master: Page, settings: Settings, **kwargs):
+    def __init__(self, update_callback, master: Any, settings: Settings, **kwargs):
         super().__init__(master, settings, **kwargs)
-        self.master = master
-
+        self.update_callback = update_callback
         self.create_content().pack_configure(fill='both', expand=False)
 
     def create_content(self) -> Page:
@@ -33,7 +31,8 @@ class SettingsPage(Page):
     
     def on_choise_lang(self, choise: str):
         self.settings.update_locale(choise)
-        self.update_all()
+        #self.mainframe.update_all()
+        self.update_callback()
     
 
 class SettingsComboBox(CTkFrame):
